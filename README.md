@@ -1,13 +1,13 @@
-# 🐜 Path finding in complex networks 🐜
+# 🐜 Path finding in complex mazes 🐜
 
-This project explores the Ant Colony Optimization algorithms, a nature-inspired approaches that mimics how ants find the shortest paths between their nest and food sources. We leverage this ingenious strategy to tackle the challenging problem of finding optimal routes within complex networks.
+This project explores the Ant Colony Optimization algorithms, a nature-inspired approaches that mimic how ants find the shortest paths between their nest and food sources. We leverage this ingenious strategy to solve the challenging problem of finding paths out of randomly-generated complex mazes.
 
 # How to contribute
 
 1. Clone the repository
 2. Download and install conda (necessary for virtual environments)
 3. Create the environment from the YAML file `conda env create -f environment.yml`
-4. Activate the environment before working on the project `conda activate complex-network`
+4. Activate the environment before working on the project `conda activate solving-mazes`
 
 # Coding guidelines
 
@@ -19,7 +19,9 @@ coding standards
 existing functionality
 - Write new tests for any added features or modified code to maintain
 comprehensive test coverage
-- Use `pylint` to catch potential issues
+- Use `pylint` to catch potential issues (`pylint <file_name>` or
+`pylint --rcfile=<.pylintrc location> <file_name>` when run outside
+of the main directory)
 - Write docstrings for public modules, functions, classes and methods
 
 When working with pull requests ensure to follow the project's branching rules:
