@@ -6,7 +6,7 @@ This module provides functions for displaying the maze together
 with the ants exploring it trying to find the shortest path.
 """
 
-import networkx as nx  # type: ignore
+import networkx as nx
 import pygame
 from time import sleep
 
