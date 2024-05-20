@@ -48,7 +48,7 @@ def _generate_maze_kruskal(rows: int, cols: int) -> nx.Graph:
         rows: Number of rows in the maze
         cols: Number of columns in the maze
         
-        Returns:
+    Returns:
             Maze represented as a connected NetworkX graph.
     """
     graph = nx.grid_2d_graph(rows, cols)
@@ -75,12 +75,20 @@ def _generate_maze_kruskal(rows: int, cols: int) -> nx.Graph:
 
 def generate_maze(rows: int, cols: int, extra_edges: int = None):
     """
-    Generate a random maze. 
+    Generate a random maze. At least one cycle in the maze is guaranteed.
     
     Functionality note:
     Proportion of extra_edges with respect to
     the total number of possible edges to add should not be high and
     should certainly be less than 50%.
+    
+    Args:
+        rows: Number of rows in the maze
+        cols: Number of columns in the maze
+        extra_edges: Number of extra edges added to try to create a cycle
+    
+    Returns:
+        Maze represented as a connected NetworkX graph with a cycle.
     """
     if extra_edges is None:
         # Approximate number of edges that can be added multiplied
