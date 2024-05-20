@@ -36,7 +36,6 @@ def draw_maze(mst: nx.Graph, rows: int, cols: int, cell_size: int = 20):
     white = (255, 255, 255)
     black = (0, 0, 0)
     screen.fill(white)
-
     full = nx.grid_2d_graph(rows, cols)
     mst_edges = mst.edges()
 
