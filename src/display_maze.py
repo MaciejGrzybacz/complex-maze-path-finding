@@ -8,13 +8,14 @@ with the ants exploring it trying to find the shortest path.
 
 import networkx as nx
 import pygame
+from time import sleep
 
 
-# TODO: Fix the maze display so that it considers the edges
-# in the graph as paths between cells and not walls.
-# TODO: Add a docstring to explain the functionality and arguments
-# for this function.
 def draw_maze(mst: nx.Graph, rows: int, cols: int, cell_size: int = 20):
+    """
+    TODO
+    """
+
     pygame.init()
     width, height = cols * cell_size, rows * cell_size
     screen = pygame.display.set_mode((width, height))
@@ -22,10 +23,34 @@ def draw_maze(mst: nx.Graph, rows: int, cols: int, cell_size: int = 20):
     white = (255, 255, 255)
     black = (0, 0, 0)
     screen.fill(white)
-    for (u, v) in mst.edges():
-        x1, y1 = u[1] * cell_size, u[0] * cell_size
-        x2, y2 = v[1] * cell_size, v[0] * cell_size
-        pygame.draw.line(screen, black, (x1, y1), (x2, y2), 2)
+
+    full = nx.grid_2d_graph(rows, cols)
+    mst_edges = mst.edges()
+
+    for u, v in full.edges():
+        if (u, v) not in mst_edges:
+            if u[0] == v[0]:
+                x1 = (u[1] + v[1]) * cell_size / 2 + cell_size / 2
+                x2 = x1
+                y1 = (u[0] + v[0] - 1) * cell_size / 2 + cell_size / 2
+                y2 = y1 + cell_size
+
+            else:
+                x1 = (u[1] + v[1] - 1) * cell_size / 2 + cell_size / 2
+                x2 = x1 + cell_size
+                y1 = (u[0] + v[0]) * cell_size / 2 + cell_size / 2
+                y2 = y1
+
+            pygame.draw.line(screen, black, (x1, y1), (x2, y2), 2)
+
+    pygame.draw.line(screen, (255, 0, 0), (0, cell_size), (0, height), 3)
+    pygame.draw.line(screen, (255, 0, 0), (0, 0), (width, 0), 3)
+    pygame.draw.line(
+        screen, (255, 0, 0), (0, height - 1), (width, height - 1), 3
+    )
+    pygame.draw.line(
+        screen, (255, 0, 0), (width, 0), (width, height - cell_size), 3
+    )
 
     pygame.display.flip()
     running = True
@@ -33,6 +58,6 @@ def draw_maze(mst: nx.Graph, rows: int, cols: int, cell_size: int = 20):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+        sleep(0.01)
 
     pygame.quit()
-
