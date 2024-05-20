@@ -1,7 +1,17 @@
+"""
+Module for displaying the path-finding process
+of the ACO algorithm.
+
+This module provides functions for displaying the maze together
+with the ants exploring it trying to find the shortest path.
+"""
+
 import networkx as nx
 import pygame
 
 
+# TODO: Fix the maze display so that it considers the edges
+# in the graph as paths between cells and not walls.
 def draw_maze(mst: nx.Graph, rows: int, cols: int, cell_size: int = 20):
     pygame.init()
     width, height = cols * cell_size, rows * cell_size
