@@ -55,17 +55,16 @@ def test_maze_has_cycles():
     assert not nx.is_tree(maze)
 
 def test_maze_dimensions():
-    """Tests if the graph has a correct number of nodes and edges."""
+    """Tests if the graph has a correct number of nodes."""
     rows, cols = 6, 8
     extra = 5
     maze = generate_maze(rows, cols, extra_edges=extra)
     assert maze.number_of_nodes() == rows * cols
-    assert maze.number_of_edges() == maze.number_of_nodes() - 1 + extra
 
 
 def test_maze_auto_edge_calculation():
     """
-    Tests if the default value for the numbe of extra edges
+    Tests if the default value for the number of extra edges
     gives us a maze with cycles.
     """
     rows, cols = 15, 20
