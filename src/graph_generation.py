@@ -5,7 +5,7 @@ This module provides functions for creating NetworkX graphs with
 random structure and edge weights.
 """
 
-import networkx as nx  # type: ignore
+import networkx as nx
 import numpy as np
 import random
 from typing import Optional
