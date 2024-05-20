@@ -7,16 +7,19 @@ import networkx as nx
 from src.graph_generation import _generate_maze_kruskal, generate_random_graph
 from src.graph_generation import generate_maze
 
+
 # _generate_maze_kruskal tests
 def test_kruskal_connectivity():
     """Tests if the maze is a connected graph."""
     maze = _generate_maze_kruskal(5, 5)
     assert nx.is_connected(maze)
 
+
 def test_kruskal_no_cycles():
     """Tests if the maze has no cycles."""
     maze = _generate_maze_kruskal(10, 9)
     assert nx.is_tree(maze)
+
 
 def test_kruskal_dimensions():
     """Tests if the maze has a correct number of nodes and edges"""
@@ -33,12 +36,14 @@ def test_number_of_nodes():
     graph = generate_random_graph(n, 0.5)
     assert graph.number_of_nodes() == n
 
+
 def test_edge_weights():
     """Tests if the edge weights are within the specified range."""
     min_weight = 5
     max_weight = 20
-    graph = generate_random_graph(10, 0.5, min_weight=min_weight,
-                                  max_weight=max_weight)
+    graph = generate_random_graph(
+        10, 0.5, min_weight=min_weight, max_weight=max_weight
+    )
     for _, _, w in graph.edges(data=True):
         assert min_weight <= w["weight"] <= max_weight
 
@@ -49,10 +54,12 @@ def test_maze_connectivity():
     maze = generate_maze(10, 10)
     assert nx.is_connected(maze)
 
+
 def test_maze_has_cycles():
     """Tests if the graph contains cycles."""
     maze = generate_maze(20, 20)
     assert not nx.is_tree(maze)
+
 
 def test_maze_dimensions():
     """Tests if the graph has a correct number of nodes."""

@@ -5,20 +5,24 @@ This module provides functions for creating NetworkX graphs with
 random structure and edge weights.
 """
 
-import networkx as nx
+import networkx as nx  # type: ignore
 import numpy as np
 import random
+from typing import Optional
 
 
 # Number of edges added to the graph during maze
 # generation to create cycles
-NEW_EDGES_FRAC = 0.2
+NEW_EDGES_FRAC = 0.015
 
 
-def generate_random_graph(n: int, edge_p: float,
-                          seed: int = 42,
-                          min_weight: int = 1,
-                          max_weight: int = 10) -> nx.Graph:
+def generate_random_graph(
+    n: int,
+    edge_p: float,
+    seed: int = 42,
+    min_weight: int = 1,
+    max_weight: int = 10,
+) -> nx.Graph:
     """
     Generates a random graph with weighted edges.
 
@@ -43,11 +47,11 @@ def generate_random_graph(n: int, edge_p: float,
 def _generate_maze_kruskal(rows: int, cols: int) -> nx.Graph:
     """
     Generates a random maze using Kruskal's algorithm.
-    
+
     Args:
         rows: Number of rows in the maze
         cols: Number of columns in the maze
-        
+
     Returns:
             Maze represented as a connected NetworkX graph.
     """
@@ -59,8 +63,9 @@ def _generate_maze_kruskal(rows: int, cols: int) -> nx.Graph:
     np.random.shuffle(edges)
     # Floating-point weights between [0, 1) are used to randomize
     # the creation of the MST
-    edges_with_weights = [(u, v, {"weight": np.random.random_sample()})
-                          for u, v in edges]
+    edges_with_weights = [
+        (u, v, {"weight": np.random.random_sample()}) for u, v in edges
+    ]
 
     mod_graph = nx.Graph()
     mod_graph.add_edges_from(edges_with_weights)
@@ -73,20 +78,20 @@ def _generate_maze_kruskal(rows: int, cols: int) -> nx.Graph:
     return mst
 
 
-def generate_maze(rows: int, cols: int, extra_edges: int = None):
+def generate_maze(rows: int, cols: int, extra_edges: Optional[int] = None):
     """
     Generate a random maze. At least one cycle in the maze is guaranteed.
-    
+
     Functionality note:
     Proportion of extra_edges with respect to
     the total number of possible edges to add should not be high and
     should certainly be less than 50%.
-    
+
     Args:
         rows: Number of rows in the maze
         cols: Number of columns in the maze
         extra_edges: Number of extra edges added to try to create a cycle
-    
+
     Returns:
         Maze represented as a connected NetworkX graph with a cycle.
     """
@@ -103,10 +108,15 @@ def generate_maze(rows: int, cols: int, extra_edges: int = None):
         Get all valid nodes with which the given node can be connected.
         """
         row, col = node
-        neighbors = [(row + 1, col), (row - 1, col), (row, col + 1),
-                     (row, col - 1)]
-        return [(r, c) for r, c in neighbors if 0 <= r < rows and 0 <= c < cols]
-
+        neighbors = [
+            (row + 1, col),
+            (row - 1, col),
+            (row, col + 1),
+            (row, col - 1),
+        ]
+        return [
+            (r, c) for r, c in neighbors if 0 <= r < rows and 0 <= c < cols
+        ]
 
     # Add extra edges to create cycles
     # Iterate for a number of extra edges. If the extra edges do not yield

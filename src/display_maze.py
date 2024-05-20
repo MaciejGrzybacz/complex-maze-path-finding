@@ -6,11 +6,29 @@ This module provides functions for displaying the maze together
 with the ants exploring it trying to find the shortest path.
 """
 
-import networkx as nx
+import networkx as nx  # type: ignore
 import pygame
+from time import sleep
 
 
 def draw_maze(mst: nx.Graph, rows: int, cols: int, cell_size: int = 20):
+    """
+    Display maze given by a graph.
+
+    Works by comparing graph to full 2d grid and drawing walls where there is
+    no edge. Also draws red border with entrance and exit around maze.
+
+    Args:
+        mst: graph
+        rows: amount rows in maze
+        cols: amount columns in maze
+        cell_size: size of cell to draw
+
+    Returns:
+        Nothing
+
+    """
+
     pygame.init()
     width, height = cols * cell_size, rows * cell_size
     screen = pygame.display.set_mode((width, height))
@@ -18,24 +36,37 @@ def draw_maze(mst: nx.Graph, rows: int, cols: int, cell_size: int = 20):
     white = (255, 255, 255)
     black = (0, 0, 0)
     screen.fill(white)
+    full = nx.grid_2d_graph(rows, cols)
+    mst_edges = mst.edges()
 
-    walls = _gen_maze_walls(rows, cols)
-    edges = [
-        ((0, 0), (0, 1)),
-        ((0, 1), (1, 1))
-    ]
-    # edges = mst.edges
-    _remove_walls_with_graph_edges(edges, walls)
+    for u, v in full.edges():
+        if (u, v) not in mst_edges:
+            if u[0] == v[0]:
+                x1 = (u[1] + v[1]) * cell_size / 2 + cell_size / 2
+                x2 = x1
+                y1 = (u[0] + v[0] - 1) * cell_size / 2 + cell_size / 2
+                y2 = y1 + cell_size
 
+            else:
+                x1 = (u[1] + v[1] - 1) * cell_size / 2 + cell_size / 2
+                x2 = x1 + cell_size
+                y1 = (u[0] + v[0]) * cell_size / 2 + cell_size / 2
+                y2 = y1
 
+            pygame.draw.line(screen, black, (x1, y1), (x2, y2), 2)
 
-
-    for (u, v) in walls:
-        x1, y1 = u[1] * cell_size, u[0] * cell_size
-        x2, y2 = v[1] * cell_size, v[0] * cell_size
-        pygame.draw.line(screen, black, (x1, y1), (x2, y2), 2)
-
-    # pygame.draw.line()
+    pygame.draw.line(screen, (255, 0, 0), (0, cell_size), (0, height), 3)
+    pygame.draw.line(screen, (255, 0, 0), (0, 0), (width, 0), 3)
+    pygame.draw.line(
+        screen, (255, 0, 0), (0, height - 1), (width, height - 1), 3
+    )
+    pygame.draw.line(
+        screen,
+        (255, 0, 0),
+        (width - 1, 0),
+        (width - 1, height - cell_size),
+        3,
+    )
 
     pygame.display.flip()
     running = True
@@ -43,31 +74,6 @@ def draw_maze(mst: nx.Graph, rows: int, cols: int, cell_size: int = 20):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+        sleep(0.01)
 
     pygame.quit()
-
-
-def _remove_walls_with_graph_edges(edges, walls):
-    for u, v in edges:
-        u, v = sorted((u, v))
-        r1, r2 = u[0], v[0]
-        c1, c2 = u[1], v[1]
-
-        if r1 == r2:
-            wall = ((r2, c2), (r2 + 1, c2))
-        elif c1 == c2:
-            wall = ((r2, c2), (r2, c2 + 1))
-        else:
-            raise AssertionError(f"Invalid edge {(u, v)}")
-        walls.remove(wall)
-
-
-def _gen_maze_walls(rows, cols):
-    walls = [((row, col), (row, col + 1)) for row in range(rows)
-             for col in range(cols)]
-    walls.extend(
-        [((row, col), (row + 1, col)) for row in range(rows)
-         for col in range(cols)]
-    )
-    walls = set(walls)
-    return walls
