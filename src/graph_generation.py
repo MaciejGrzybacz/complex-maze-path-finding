@@ -5,7 +5,7 @@ This module provides functions for creating NetworkX graphs with
 random structure and edge weights.
 """
 
-import networkx as nx
+import networkx as nx  # type: ignore
 import numpy as np
 import random
 from typing import Optional
@@ -13,7 +13,7 @@ from typing import Optional
 
 # Number of edges added to the graph during maze
 # generation to create cycles
-NEW_EDGES_FRAC = 0.2
+NEW_EDGES_FRAC = 0.015
 
 
 def generate_random_graph(

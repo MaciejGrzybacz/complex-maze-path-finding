@@ -6,14 +6,27 @@ This module provides functions for displaying the maze together
 with the ants exploring it trying to find the shortest path.
 """
 
-import networkx as nx
+import networkx as nx  # type: ignore
 import pygame
 from time import sleep
 
 
 def draw_maze(mst: nx.Graph, rows: int, cols: int, cell_size: int = 20):
     """
-    TODO
+    Display maze given by a graph.
+
+    Works by comparing graph to full 2d grid and drawing walls where there is
+    no edge. Also draws red border with entrance and exit around maze.
+
+    Args:
+        mst: graph
+        rows: amount rows in maze
+        cols: amount columns in maze
+        cell_size: size of cell to draw
+
+    Returns:
+        Nothing
+
     """
 
     pygame.init()
@@ -49,7 +62,11 @@ def draw_maze(mst: nx.Graph, rows: int, cols: int, cell_size: int = 20):
         screen, (255, 0, 0), (0, height - 1), (width, height - 1), 3
     )
     pygame.draw.line(
-        screen, (255, 0, 0), (width, 0), (width, height - cell_size), 3
+        screen,
+        (255, 0, 0),
+        (width - 1, 0),
+        (width - 1, height - cell_size),
+        3,
     )
 
     pygame.display.flip()
