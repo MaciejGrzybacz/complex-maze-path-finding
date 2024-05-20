@@ -7,6 +7,12 @@ random structure and edge weights.
 
 import networkx as nx
 import numpy as np
+import random
+
+
+# Number of edges added to the graph during maze
+# generation to create cycles
+NEW_EDGES_FRAC = 0.2
 
 
 def generate_random_graph(n: int, edge_p: float,
@@ -34,7 +40,7 @@ def generate_random_graph(n: int, edge_p: float,
     return graph
 
 
-def generate_maze_kruskal(rows: int, cols: int) -> nx.Graph:
+def _generate_maze_kruskal(rows: int, cols: int) -> nx.Graph:
     """
     Generates a random maze using Kruskal's algorithm.
     
@@ -42,7 +48,7 @@ def generate_maze_kruskal(rows: int, cols: int) -> nx.Graph:
         rows: Number of rows in the maze
         cols: Number of columns in the maze
         
-        Returns:
+    Returns:
             Maze represented as a connected NetworkX graph.
     """
     graph = nx.grid_2d_graph(rows, cols)
@@ -65,3 +71,55 @@ def generate_maze_kruskal(rows: int, cols: int) -> nx.Graph:
         del d["weight"]
 
     return mst
+
+
+def generate_maze(rows: int, cols: int, extra_edges: int = None):
+    """
+    Generate a random maze. At least one cycle in the maze is guaranteed.
+    
+    Functionality note:
+    Proportion of extra_edges with respect to
+    the total number of possible edges to add should not be high and
+    should certainly be less than 50%.
+    
+    Args:
+        rows: Number of rows in the maze
+        cols: Number of columns in the maze
+        extra_edges: Number of extra edges added to try to create a cycle
+    
+    Returns:
+        Maze represented as a connected NetworkX graph with a cycle.
+    """
+    if extra_edges is None:
+        # Approximate number of edges that can be added multiplied
+        # by the fraction that we want to add
+        edge_num = rows * cols * 4
+        extra_edges = int(NEW_EDGES_FRAC * edge_num)
+
+    graph = _generate_maze_kruskal(rows, cols)
+
+    def get_valid_neighbors(node: tuple[int, int], rows: int, cols: int):
+        """
+        Get all valid nodes with which the given node can be connected.
+        """
+        row, col = node
+        neighbors = [(row + 1, col), (row - 1, col), (row, col + 1),
+                     (row, col - 1)]
+        return [(r, c) for r, c in neighbors if 0 <= r < rows and 0 <= c < cols]
+
+
+    # Add extra edges to create cycles
+    # Iterate for a number of extra edges. If the extra edges do not yield
+    # a cycle then iterate until we get a first cycle.
+    added_edges = 0
+    while added_edges < extra_edges or nx.is_tree(graph):
+        u = (random.randint(0, rows - 1), random.randint(0, cols - 1))
+        valid_neighbors = get_valid_neighbors(u, rows, cols)
+
+        if valid_neighbors:
+            v = random.choice(valid_neighbors)
+            if not graph.has_edge(u, v):
+                graph.add_edge(u, v)
+                added_edges += 1
+
+    return graph
