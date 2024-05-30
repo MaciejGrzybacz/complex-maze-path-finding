@@ -4,7 +4,6 @@ the shortest path between to given nodes in a graph.
 """
 
 import networkx as nx
-from concurrent.futures import ProcessPoolExecutor
 from typing import List, Tuple
 
 from .aco_strategies import MoveSelectionStrategy, PheromoneUpdateStrategy
@@ -86,8 +85,8 @@ class AntColonyOptimization:
                 all_time_shortest_path = shortest_path
         
         return all_time_shortest_path
-        
-    def _construct_colony_paths(self, start: int, end: int) -> List[Tuple[List[int], int]]:
+    
+    def _construct_colony_paths(self, start: int, end: int):
         """
         Constructs paths for all ants in the colony from the
         start node to the end node.
@@ -103,7 +102,7 @@ class AntColonyOptimization:
         for _ in range(self.n_ants):
             path = self._construct_path(start, end)
             all_paths.append((path, AntColonyOptimization.path_length(path)))
-            
+
         return all_paths
     
     def _construct_path(self, start: int, end: int) -> List[int]:

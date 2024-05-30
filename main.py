@@ -32,13 +32,13 @@ def ensure_undirected_with_symmetry(graph: nx.Graph) -> nx.Graph:
 
 
 if __name__ == "__main__":
-    ROWS = 20
-    COLS = 20
+    ROWS = 10
+    COLS = 10
     graph = generate_maze(ROWS, COLS)
     graph = convert_grid_to_graph(graph)
     
-    aco = AntColonyOptimization(graph, n_ants=10, n_best=2,
-                                n_iterations=30, decay=0.5,
+    aco = AntColonyOptimization(graph, n_ants=10, n_best=3,
+                                n_iterations=10, decay=0.5,
                                 alpha=1, beta=1)
     
     upper_right_corner = node_tuple_to_int((0, COLS - 1), COLS)
