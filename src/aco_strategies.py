@@ -22,7 +22,7 @@ class MoveSelectionStrategy(ABC):
                     alpha: float,
                     beta: float) -> int:
         pass
-    
+
 
 class PheromoneUpdateStrategy(ABC):
     """
@@ -35,7 +35,7 @@ class PheromoneUpdateStrategy(ABC):
                          decay: float,
                          n_best: int) -> Dict[Tuple[int, int], float]:
         pass
-    
+
 
 class PheromoneBasedMoveSelection(MoveSelectionStrategy):
     def select_move(self, graph: nx.Graph,
@@ -64,18 +64,19 @@ class PheromoneBasedMoveSelection(MoveSelectionStrategy):
         """
         # retrieve edges connected to the current node
         edges = graph.edges(current_node)
-        
+
         neighbors = []
         pheromone_values = []
         for edge in edges:
             neighbor = edge[1] if edge[0] == current_node else edge[0]
             neighbors.append(neighbor)
-            # calulate pheromone values for each edge adjusted by alpha parameter
+            # calulate pheromone values for each edge adjusted by
+            # alpha parameter
             pheromone_value = get_pheromone_value(pheromone, edge) ** alpha
             pheromone_values.append(pheromone_value)
-        
+ 
         pheromone_values = np.array(pheromone_values)
-        
+
         # here we use the node degree heuristic (number of edges connected to it)
         # this means that the nodes with fewer connections have a higher
         # heuristic value, the parameter beta controls the influence of this
