@@ -4,6 +4,7 @@ the shortest path between to given nodes in a graph.
 """
 
 import networkx as nx
+from concurrent.futures import ProcessPoolExecutor
 from typing import List, Tuple
 
 from .aco_strategies import MoveSelectionStrategy, PheromoneUpdateStrategy
@@ -118,13 +119,17 @@ class AntColonyOptimization:
             The path constructed by the ant.
         """
         path = [start]
+        # This set stored all the already explored nodes in the graph.
+        # We are going to prioritize exploration of unexplored nodes.
+        explored = {start} 
         while path[-1] != end:
             move = self.move_selection_strategy.select_move(
-                self.graph, self.pheromone, path[-1],
-                self.alpha, self.beta
+                self.graph, self.pheromone, explored,
+                path[-1], self.alpha, self.beta
             )
             path.append(move)
-            
+            explored.add(move)
+        
         return path
     
     @staticmethod

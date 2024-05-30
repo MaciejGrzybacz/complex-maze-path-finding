@@ -3,7 +3,7 @@ This module is the entry point for the application.
 """
 
 from src.path_finding import AntColonyOptimization
-from src.evalution import compare_with_dijkstra
+from src.evaluation import compare_with_dijkstra
 from src.graph_generation import generate_maze
 from src.graph_utils import convert_grid_to_graph, node_tuple_to_int
 
@@ -32,8 +32,8 @@ def ensure_undirected_with_symmetry(graph: nx.Graph) -> nx.Graph:
 
 
 if __name__ == "__main__":
-    ROWS = 10
-    COLS = 10
+    ROWS = 20
+    COLS = 20
     graph = generate_maze(ROWS, COLS)
     graph = convert_grid_to_graph(graph)
     
