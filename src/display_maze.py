@@ -6,12 +6,17 @@ This module provides functions for displaying the maze together
 with the ants exploring it trying to find the shortest path.
 """
 
-import networkx as nx
-import pygame
+import networkx as nx  # type: ignore
+import pygame  # type: ignore
 from time import sleep
 
 
-def draw_maze(mst: nx.Graph, rows: int, cols: int, cell_size: int = 20):
+def draw_maze(
+    mst: nx.Graph,
+    rows: int,
+    cols: int,
+    cell_size: int = 20,
+):
     """
     Display maze given by a graph.
 
