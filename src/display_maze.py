@@ -9,76 +9,180 @@ with the ants exploring it trying to find the shortest path.
 import networkx as nx  # type: ignore
 import pygame  # type: ignore
 from time import sleep
+from typing import List, Tuple, Dict
+
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+BLUE = (0, 0, 255)
+BORDER_COLOR = BLACK
 
 
-def draw_maze(
-    mst: nx.Graph,
-    rows: int,
-    cols: int,
-    cell_size: int = 20,
-):
-    """
-    Display maze given by a graph.
+class Drawer:
+    def __init__(
+        self,
+        rows: int,
+        cols: int,
+        cell_size: int = 20,
+    ):
+        """
+        Initialize maze drawer with some parameters
+        """
 
-    Works by comparing graph to full 2d grid and drawing walls where there is
-    no edge. Also draws red border with entrance and exit around maze.
+        self.cell_size = cell_size
+        self.rows = rows
+        self.cols = cols
+        self.width, self.height = cols * cell_size, rows * cell_size
 
-    Args:
-        mst: graph
-        rows: amount rows in maze
-        cols: amount columns in maze
-        cell_size: size of cell to draw
+    def setup(self):
+        """
+        Setup, pygame init
+        """
 
-    Returns:
-        Nothing
+        pygame.init()
+        self.screen = pygame.display.set_mode((self.width, self.height))
+        pygame.display.set_caption("Maze")
+        self.screen.fill(WHITE)
 
-    """
+    def draw_maze(
+        self,
+        maze: nx.Graph,
+    ):
+        """
+        Display maze given by a graph.
 
-    pygame.init()
-    width, height = cols * cell_size, rows * cell_size
-    screen = pygame.display.set_mode((width, height))
-    pygame.display.set_caption("Maze")
-    white = (255, 255, 255)
-    black = (0, 0, 0)
-    screen.fill(white)
-    full = nx.grid_2d_graph(rows, cols)
-    mst_edges = mst.edges()
+        Works by comparing graph to full 2d grid and drawing walls where
+        there is no edge. Also draws red border with entrance and exit
+        around maze.
 
-    for u, v in full.edges():
-        if (u, v) not in mst_edges:
-            if u[0] == v[0]:
-                x1 = (u[1] + v[1]) * cell_size / 2 + cell_size / 2
-                x2 = x1
-                y1 = (u[0] + v[0] - 1) * cell_size / 2 + cell_size / 2
-                y2 = y1 + cell_size
+        Args:
+            mst: graph
+            rows: amount rows in maze
+            cols: amount columns in maze
+            cell_size: size of cell to draw
 
-            else:
-                x1 = (u[1] + v[1] - 1) * cell_size / 2 + cell_size / 2
-                x2 = x1 + cell_size
-                y1 = (u[0] + v[0]) * cell_size / 2 + cell_size / 2
-                y2 = y1
+        Returns:
+            Nothing
 
-            pygame.draw.line(screen, black, (x1, y1), (x2, y2), 2)
+        """
 
-    pygame.draw.line(screen, (255, 0, 0), (0, cell_size), (0, height), 3)
-    pygame.draw.line(screen, (255, 0, 0), (0, 0), (width, 0), 3)
-    pygame.draw.line(
-        screen, (255, 0, 0), (0, height - 1), (width, height - 1), 3
-    )
-    pygame.draw.line(
-        screen,
-        (255, 0, 0),
-        (width - 1, 0),
-        (width - 1, height - cell_size),
-        3,
-    )
+        full = nx.grid_2d_graph(self.rows, self.cols)
+        edges = maze.edges()
 
-    pygame.display.flip()
-    running = True
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-        sleep(0.01)
+        for u, v in full.edges():
+            if (u, v) not in edges:
+                if u[0] == v[0]:  # horizontal
+                    x1 = (
+                        u[1] + v[1]
+                    ) * self.cell_size / 2 + self.cell_size / 2
+                    x2 = x1
+                    y1 = (
+                        u[0] + v[0] - 1
+                    ) * self.cell_size / 2 + self.cell_size / 2
+                    y2 = y1 + self.cell_size
 
-    pygame.quit()
+                else:  # vertical
+                    x1 = (
+                        u[1] + v[1] - 1
+                    ) * self.cell_size / 2 + self.cell_size / 2
+                    x2 = x1 + self.cell_size
+                    y1 = (
+                        u[0] + v[0]
+                    ) * self.cell_size / 2 + self.cell_size / 2
+                    y2 = y1
+
+                # draw wall
+                pygame.draw.line(self.screen, BLACK, (x1, y1), (x2, y2), 2)
+
+        # border
+        border_width = int(self.cell_size / 10)
+        pygame.draw.line(
+            self.screen,
+            BORDER_COLOR,
+            (0, self.cell_size),
+            (0, self.height),
+            border_width,
+        )
+        pygame.draw.line(
+            self.screen,
+            BORDER_COLOR,
+            (0, 0),
+            (self.width, 0),
+            border_width,
+        )
+        pygame.draw.line(
+            self.screen,
+            BORDER_COLOR,
+            (0, self.height - 1),
+            (self.width, self.height - 1),
+            border_width,
+        )
+        pygame.draw.line(
+            self.screen,
+            BORDER_COLOR,
+            (self.width - 1, 0),
+            (self.width - 1, self.height - self.cell_size),
+            border_width,
+        )
+
+        # update
+        pygame.display.flip()
+
+    def draw_pheromone(
+        self,
+        pheromone: Dict[Tuple[int, int], float],
+        color: Tuple[int, int, int] = RED,
+    ):
+        """
+        Draw pheromone levels in maze
+        """
+        pass  # TODO
+
+    def draw_path(
+        self,
+        path: List[int],
+        color: Tuple[int, int, int] = BLUE,
+    ):
+        """
+        Draw path through maze
+        """
+        u = path[0]
+        line_width = int(self.cell_size / 6)
+        box_start = int(self.cell_size / 12) - 1
+
+        for i in range(1, len(path)):
+            v = path[i]
+
+            # start and end of line
+            vy, vx = divmod(v, self.rows)
+            uy, ux = divmod(u, self.rows)
+            x1 = self.cell_size / 2 + ux * self.cell_size
+            y1 = self.cell_size / 2 + uy * self.cell_size
+            x2 = self.cell_size / 2 + vx * self.cell_size
+            y2 = self.cell_size / 2 + vy * self.cell_size
+
+            # line
+            pygame.draw.line(
+                self.screen, color, (x1, y1), (x2, y2), line_width
+            )
+
+            # rect for making line smooth
+            pygame.draw.rect(
+                self.screen,
+                color,
+                ((x1 - box_start, y1 - box_start), (line_width, line_width)),
+            )
+            u = v
+
+        # same square as before
+        pygame.display.flip()
+
+    def display_loop(self):
+        running = True
+        while running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+            sleep(0.01)
+
+        pygame.quit()

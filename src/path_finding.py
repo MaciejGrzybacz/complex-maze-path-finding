@@ -37,7 +37,8 @@ class AntColonyOptimization:
             n_iterations: The number of iterations the algorithm will run.
             decay: The rate at which the pheromone decays after each iteration.
             alpha: The influence of the pheromone levels on the move decision.
-            beta: The influence of the heuristic information on the move decision.
+            beta: The influence of the heuristic information on the move
+            decision.
             move_selection_strategy: The strategy used for selecting the next
                 move for an ant.
             pheromone_update_strategy: The strategy used for updating the

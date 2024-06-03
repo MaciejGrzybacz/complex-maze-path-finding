@@ -6,8 +6,10 @@ from src.path_finding import AntColonyOptimization
 from src.evaluation import compare_with_dijkstra
 from src.graph_generation import generate_maze
 from src.graph_utils import convert_grid_to_graph, node_tuple_to_int
+from src.display_maze import Drawer
 
 import networkx as nx  # type: ignore
+import multiprocessing as mp
 
 
 def ensure_undirected_with_symmetry(graph: nx.Graph) -> nx.Graph:
@@ -34,8 +36,10 @@ def ensure_undirected_with_symmetry(graph: nx.Graph) -> nx.Graph:
 if __name__ == "__main__":
     ROWS = 10
     COLS = 10
-    graph = generate_maze(ROWS, COLS)
-    graph = convert_grid_to_graph(graph)
+    CELL_SIZE = 40
+
+    maze = generate_maze(ROWS, COLS)
+    graph = convert_grid_to_graph(maze)
 
     aco = AntColonyOptimization(
         graph,
@@ -50,4 +54,12 @@ if __name__ == "__main__":
     upper_right_corner = node_tuple_to_int((0, COLS - 1), COLS)
     lower_left_corner = node_tuple_to_int((ROWS - 1, 0), COLS)
 
-    compare_with_dijkstra(graph, lower_left_corner, upper_right_corner, aco)
+    aco_path, dijkstra_path = compare_with_dijkstra(
+        graph, lower_left_corner, upper_right_corner, aco
+    )
+
+    drawer = Drawer(ROWS, COLS, CELL_SIZE)
+    drawer.setup()
+    drawer.draw_maze(maze)
+    drawer.draw_path(aco_path)
+    drawer.display_loop()
