@@ -3,7 +3,7 @@ This module is the entry point for the application.
 """
 
 from src.path_finding import AntColonyOptimization
-from src.evalution import compare_with_dijkstra
+from src.evaluation import compare_with_dijkstra
 from src.graph_generation import generate_maze
 from src.graph_utils import convert_grid_to_graph, node_tuple_to_int
 
@@ -37,8 +37,8 @@ if __name__ == "__main__":
     graph = generate_maze(ROWS, COLS)
     graph = convert_grid_to_graph(graph)
     
-    aco = AntColonyOptimization(graph, n_ants=10, n_best=2,
-                                n_iterations=30, decay=0.5,
+    aco = AntColonyOptimization(graph, n_ants=10, n_best=3,
+                                n_iterations=10, decay=0.5,
                                 alpha=1, beta=1)
     
     upper_right_corner = node_tuple_to_int((0, COLS - 1), COLS)

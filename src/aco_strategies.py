@@ -5,7 +5,7 @@ to find the shortest-paths in a graph.
 """
 
 from abc import ABC, abstractmethod
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Set
 import networkx as nx
 import numpy as np
 
@@ -17,11 +17,12 @@ class MoveSelectionStrategy(ABC):
     @abstractmethod
     def select_move(self, graph: nx.Graph,
                     pheromone: Dict[Tuple[int, int], float],
+                    explored: Set[int],
                     current_node: int,
                     alpha: float,
                     beta: float) -> int:
         pass
-    
+
 
 class PheromoneUpdateStrategy(ABC):
     """
@@ -34,11 +35,12 @@ class PheromoneUpdateStrategy(ABC):
                          decay: float,
                          n_best: int) -> Dict[Tuple[int, int], float]:
         pass
-    
+
 
 class PheromoneBasedMoveSelection(MoveSelectionStrategy):
     def select_move(self, graph: nx.Graph,
                     pheromone: Dict[Tuple[int, int], float],
+                    explored: Set[int],
                     current_node: int,
                     alpha: float,
                     beta: float) -> int:
@@ -50,6 +52,8 @@ class PheromoneBasedMoveSelection(MoveSelectionStrategy):
             graph: The graph on which the ants are moving.
             pheromone: A dictionary containing pheromone levels for
                 each edge in the graph.
+            explored: A set of already explored nodes that allows
+                the algorithm to guide the selection process more efficiently.
             current_node: The current node where the ant is located.
             alpha: The influence of the pheromone levels on the move decision.
             beta: The influence of the heuristic information (node degree)
@@ -60,18 +64,19 @@ class PheromoneBasedMoveSelection(MoveSelectionStrategy):
         """
         # retrieve edges connected to the current node
         edges = graph.edges(current_node)
-        
+
         neighbors = []
         pheromone_values = []
         for edge in edges:
             neighbor = edge[1] if edge[0] == current_node else edge[0]
             neighbors.append(neighbor)
-            # calulate pheromone values for each edge adjusted by alpha parameter
+            # calulate pheromone values for each edge adjusted by
+            # alpha parameter
             pheromone_value = get_pheromone_value(pheromone, edge) ** alpha
             pheromone_values.append(pheromone_value)
-        
+ 
         pheromone_values = np.array(pheromone_values)
-        
+
         # here we use the node degree heuristic (number of edges connected to it)
         # this means that the nodes with fewer connections have a higher
         # heuristic value, the parameter beta controls the influence of this
@@ -86,8 +91,21 @@ class PheromoneBasedMoveSelection(MoveSelectionStrategy):
         probabilities = pheromone_values * attractiveness
         probabilities /= probabilities.sum()
         
-        # select move based on the probabilities
-        move = np.random.choice(neighbors, p=probabilities)
+        # we want to prioritize nodes that have not already been explored
+        # only if all of them were explored so that we hit a dead end we
+        # decide to choose an already explored node
+        
+        # filter out already explored nodes
+        unexplored_neighbors = [n for n in neighbors if n not in explored]
+        if unexplored_neighbors:
+            unexplored_probabilities = np.array([probabilities[neighbors.index(n)]
+                                        for n in unexplored_neighbors])
+            # normalize the remaining probability values so that the sigma
+            # additivity holds for the entire sample space
+            unexplored_probabilities /= unexplored_probabilities.sum()
+            move = np.random.choice(unexplored_neighbors, p=unexplored_probabilities)
+        else:
+            move = np.random.choice(neighbors, p=probabilities)
         
         return move
     
