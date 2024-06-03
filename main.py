@@ -9,7 +9,6 @@ from src.graph_utils import convert_grid_to_graph, node_tuple_to_int
 from src.display_maze import Drawer
 
 import networkx as nx  # type: ignore
-import multiprocessing as mp
 
 
 def ensure_undirected_with_symmetry(graph: nx.Graph) -> nx.Graph:
@@ -34,8 +33,8 @@ def ensure_undirected_with_symmetry(graph: nx.Graph) -> nx.Graph:
 
 
 if __name__ == "__main__":
-    ROWS = 10
-    COLS = 10
+    ROWS = 12
+    COLS = 12
     CELL_SIZE = 40
 
     maze = generate_maze(ROWS, COLS)

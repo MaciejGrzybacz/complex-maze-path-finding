@@ -15,15 +15,21 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
-BORDER_COLOR = BLACK
+DEFAULT_BORDER_COLOR = BLACK
+DEFAULT_SLEEP_TIME = 0.02
 
 
 class Drawer:
+    """
+    Class for drawing mazes and paths.
+    """
+
     def __init__(
         self,
         rows: int,
         cols: int,
         cell_size: int = 20,
+        sleep_time: float = DEFAULT_SLEEP_TIME,
     ):
         """
         Initialize maze drawer with some parameters
@@ -33,10 +39,17 @@ class Drawer:
         self.rows = rows
         self.cols = cols
         self.width, self.height = cols * cell_size, rows * cell_size
+        self.sleep_time = sleep_time
 
     def setup(self):
         """
         Setup, pygame init
+
+        Args:
+            Nothing
+
+        Returns:
+            Nothing
         """
 
         pygame.init()
@@ -63,7 +76,6 @@ class Drawer:
 
         Returns:
             Nothing
-
         """
 
         full = nx.grid_2d_graph(self.rows, self.cols)
@@ -98,28 +110,28 @@ class Drawer:
         border_width = int(self.cell_size / 10)
         pygame.draw.line(
             self.screen,
-            BORDER_COLOR,
+            DEFAULT_BORDER_COLOR,
             (0, self.cell_size),
             (0, self.height),
             border_width,
         )
         pygame.draw.line(
             self.screen,
-            BORDER_COLOR,
+            DEFAULT_BORDER_COLOR,
             (0, 0),
             (self.width, 0),
             border_width,
         )
         pygame.draw.line(
             self.screen,
-            BORDER_COLOR,
+            DEFAULT_BORDER_COLOR,
             (0, self.height - 1),
             (self.width, self.height - 1),
             border_width,
         )
         pygame.draw.line(
             self.screen,
-            BORDER_COLOR,
+            DEFAULT_BORDER_COLOR,
             (self.width - 1, 0),
             (self.width - 1, self.height - self.cell_size),
             border_width,
@@ -135,6 +147,13 @@ class Drawer:
     ):
         """
         Draw pheromone levels in maze
+
+        Args:
+            pheromone: level of pheromone on visited edges
+            color: color of path to draw
+
+        Returns:
+            Nothing
         """
         pass  # TODO
 
@@ -145,6 +164,13 @@ class Drawer:
     ):
         """
         Draw path through maze
+
+        Args:
+            path: list of vertices constituting a path
+            color: color of path to draw
+
+        Returns:
+            Nothing
         """
         u = path[0]
         line_width = int(self.cell_size / 6)
@@ -154,8 +180,8 @@ class Drawer:
             v = path[i]
 
             # start and end of line
-            vy, vx = divmod(v, self.rows)
-            uy, ux = divmod(u, self.rows)
+            vy, vx = divmod(v, self.cols)
+            uy, ux = divmod(u, self.cols)
             x1 = self.cell_size / 2 + ux * self.cell_size
             y1 = self.cell_size / 2 + uy * self.cell_size
             x2 = self.cell_size / 2 + vx * self.cell_size
@@ -178,11 +204,21 @@ class Drawer:
         pygame.display.flip()
 
     def display_loop(self):
+        """
+        Simple event loop for displaying graphics, quits when window is closed
+
+        Args:
+            Nothing
+
+        Returns:
+            Nothing
+        """
+
         running = True
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-            sleep(0.01)
+            sleep(self.sleep_time)
 
         pygame.quit()
