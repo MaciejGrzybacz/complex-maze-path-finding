@@ -6,7 +6,7 @@ from src.path_finding import AntColonyOptimization
 from src.evaluation import compare_with_dijkstra
 from src.graph_generation import generate_maze
 from src.graph_utils import convert_grid_to_graph, node_tuple_to_int
-from src.display_maze import Drawer
+from src.display_maze import Drawer, c
 
 import networkx as nx  # type: ignore
 
@@ -60,5 +60,6 @@ if __name__ == "__main__":
     drawer = Drawer(ROWS, COLS, CELL_SIZE)
     drawer.setup()
     drawer.draw_maze(maze)
-    drawer.draw_path(aco_path)
+    drawer.draw_path(aco_path, c["blue"], draw_ends=True)
+    drawer.draw_path(dijkstra_path, c["red"], True)
     drawer.display_loop()

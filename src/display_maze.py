@@ -8,14 +8,11 @@ with the ants exploring it trying to find the shortest path.
 
 import networkx as nx  # type: ignore
 import pygame  # type: ignore
+from pygame.color import THECOLORS as c
 from time import sleep
 from typing import List, Tuple, Dict
 
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-RED = (255, 0, 0)
-BLUE = (0, 0, 255)
-DEFAULT_BORDER_COLOR = BLACK
+DEFAULT_BORDER_COLOR = c["black"]
 DEFAULT_SLEEP_TIME = 0.02
 
 
@@ -55,7 +52,7 @@ class Drawer:
         pygame.init()
         self.screen = pygame.display.set_mode((self.width, self.height))
         pygame.display.set_caption("Maze")
-        self.screen.fill(WHITE)
+        self.screen.fill(c["white"])
 
     def draw_maze(
         self,
@@ -104,7 +101,9 @@ class Drawer:
                     y2 = y1
 
                 # draw wall
-                pygame.draw.line(self.screen, BLACK, (x1, y1), (x2, y2), 2)
+                pygame.draw.line(
+                    self.screen, c["black"], (x1, y1), (x2, y2), 2
+                )
 
         # border
         border_width = int(self.cell_size / 10)
@@ -143,7 +142,7 @@ class Drawer:
     def draw_pheromone(
         self,
         pheromone: Dict[Tuple[int, int], float],
-        color: Tuple[int, int, int] = RED,
+        color: Tuple[int, int, int, int] = c["red"],
     ):
         """
         Draw pheromone levels in maze
@@ -160,7 +159,9 @@ class Drawer:
     def draw_path(
         self,
         path: List[int],
-        color: Tuple[int, int, int] = BLUE,
+        color: Tuple[int, int, int, int] = c["blue"],
+        dash: bool = False,
+        draw_ends: bool = False,
     ):
         """
         Draw path through maze
@@ -168,26 +169,66 @@ class Drawer:
         Args:
             path: list of vertices constituting a path
             color: color of path to draw
+            dash: TODO
+            draw_ends: TODO
 
         Returns:
             Nothing
         """
-        u = path[0]
+        # parameters
         line_width = int(self.cell_size / 6)
         box_start = int(self.cell_size / 12) - 1
+        circle_size = line_width * 3 + 1
+
+        # first point
+        u = path[0]
+        uy, ux = divmod(u, self.cols)
+
+        # circle at start
+        if draw_ends:
+            pygame.draw.ellipse(
+                self.screen,
+                color,
+                (
+                    (
+                        self.cell_size * (ux + 1 / 2) - circle_size / 2,
+                        self.cell_size * (uy + 1 / 2) - circle_size / 2,
+                    ),
+                    (circle_size, circle_size),
+                ),
+            )
 
         for i in range(1, len(path)):
             v = path[i]
 
-            # start and end of line
+            # start and end position in graph
             vy, vx = divmod(v, self.cols)
-            uy, ux = divmod(u, self.cols)
+
+            # start position in gui
             x1 = self.cell_size / 2 + ux * self.cell_size
             y1 = self.cell_size / 2 + uy * self.cell_size
-            x2 = self.cell_size / 2 + vx * self.cell_size
-            y2 = self.cell_size / 2 + vy * self.cell_size
 
-            # line
+            # end position in gui
+            x2: float
+            y2: float
+            if dash:  # dashed line
+                if vx == ux:
+                    x2 = vx * self.cell_size + self.cell_size / 2
+                    if vy > uy:
+                        y2 = vy * self.cell_size
+                    else:
+                        y2 = vy * self.cell_size + self.cell_size
+                else:
+                    if vx > ux:
+                        x2 = vx * self.cell_size
+                    else:
+                        x2 = vx * self.cell_size + self.cell_size
+                    y2 = vy * self.cell_size + self.cell_size / 2
+            else:  # normal line
+                x2 = vx * self.cell_size + self.cell_size / 2
+                y2 = vy * self.cell_size + self.cell_size / 2
+
+            # draw line
             pygame.draw.line(
                 self.screen, color, (x1, y1), (x2, y2), line_width
             )
@@ -196,9 +237,32 @@ class Drawer:
             pygame.draw.rect(
                 self.screen,
                 color,
-                ((x1 - box_start, y1 - box_start), (line_width, line_width)),
+                (
+                    (x1 - box_start, y1 - box_start),
+                    (line_width, line_width),
+                ),
             )
+
+            # make current vertex previous
             u = v
+            uy, ux = divmod(u, self.cols)
+
+        # circle at end
+        if draw_ends:
+            pygame.draw.ellipse(
+                self.screen,
+                color,
+                (
+                    (
+                        self.cell_size * (vx + 1 / 2) - circle_size / 2,
+                        self.cell_size * (vy + 1 / 2) - circle_size / 2,
+                    ),
+                    (
+                        circle_size,
+                        circle_size,
+                    ),
+                ),
+            )
 
         # same square as before
         pygame.display.flip()
