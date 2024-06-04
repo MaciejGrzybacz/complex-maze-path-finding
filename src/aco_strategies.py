@@ -4,23 +4,30 @@ can be used by Ant Colony Optimization algorithm
 to find the shortest-paths in a graph.
 """
 
+# mypy: no_implicit_optional = False
+
 from abc import ABC, abstractmethod
 from typing import List, Tuple, Dict, Set
-import networkx as nx
+import networkx as nx  # type: ignore
 import numpy as np
+
 
 class MoveSelectionStrategy(ABC):
     """
     This strategy defines how an ant selects its next move
     based on the current pheromone levels and a heuristic.
     """
+
     @abstractmethod
-    def select_move(self, graph: nx.Graph,
-                    pheromone: Dict[Tuple[int, int], float],
-                    explored: Set[int],
-                    current_node: int,
-                    alpha: float,
-                    beta: float) -> int:
+    def select_move(
+        self,
+        graph: nx.Graph,
+        pheromone: Dict[Tuple[int, int], float],
+        explored: Set[int],
+        current_node: int,
+        alpha: float,
+        beta: float,
+    ) -> int:
         pass
 
 
@@ -29,25 +36,32 @@ class PheromoneUpdateStrategy(ABC):
     This strategy defines how the pheromone levels are updated
     based on the paths found by the ants.
     """
+
     @abstractmethod
-    def update_pheromone(self, pheromone: Dict[Tuple[int, int], float],
-                         paths: List[Tuple[List[int], int]],
-                         decay: float,
-                         n_best: int) -> Dict[Tuple[int, int], float]:
+    def update_pheromone(
+        self,
+        pheromone: Dict[Tuple[int, int], float],
+        paths: List[Tuple[List[int], int]],
+        decay: float,
+        n_best: int,
+    ) -> Dict[Tuple[int, int], float]:
         pass
 
 
 class PheromoneBasedMoveSelection(MoveSelectionStrategy):
-    def select_move(self, graph: nx.Graph,
-                    pheromone: Dict[Tuple[int, int], float],
-                    explored: Set[int],
-                    current_node: int,
-                    alpha: float,
-                    beta: float) -> int:
+    def select_move(
+        self,
+        graph: nx.Graph,
+        pheromone: Dict[Tuple[int, int], float],
+        explored: Set[int],
+        current_node: int,
+        alpha: float,
+        beta: float,
+    ) -> int:
         """
         Select the next move for an ant based on pheromone
         levels and heuristic information.
-        
+
         Parameters:
             graph: The graph on which the ants are moving.
             pheromone: A dictionary containing pheromone levels for
@@ -58,7 +72,7 @@ class PheromoneBasedMoveSelection(MoveSelectionStrategy):
             alpha: The influence of the pheromone levels on the move decision.
             beta: The influence of the heuristic information (node degree)
                 on the move decision.
-        
+
         Returns:
             The next node to move to.
         """
@@ -74,7 +88,7 @@ class PheromoneBasedMoveSelection(MoveSelectionStrategy):
             # alpha parameter
             pheromone_value = get_pheromone_value(pheromone, edge) ** alpha
             pheromone_values.append(pheromone_value)
- 
+
         pheromone_values = np.array(pheromone_values)
 
         # here we use the node degree heuristic (number of edges connected to it)
@@ -83,49 +97,59 @@ class PheromoneBasedMoveSelection(MoveSelectionStrategy):
         # heuristic i.e. a higher value of beta gives more importance to this
         # heuristic in the decision-making process for edge selection
         # calculate the heuristic value for each neighboring node adjusted by beta
-        attractiveness = np.array([1.0 / graph.degree(neighbor) ** beta
-                                    for neighbor in neighbors])
-        
+        attractiveness = np.array(
+            [1.0 / graph.degree(neighbor) ** beta for neighbor in neighbors]
+        )
+
         # use pheromone and attractiveness to calculate edge selection
         # probabilities
         probabilities = pheromone_values * attractiveness
         probabilities /= probabilities.sum()
-        
+
         # we want to prioritize nodes that have not already been explored
         # only if all of them were explored so that we hit a dead end we
         # decide to choose an already explored node
-        
+
         # filter out already explored nodes
         unexplored_neighbors = [n for n in neighbors if n not in explored]
         if unexplored_neighbors:
-            unexplored_probabilities = np.array([probabilities[neighbors.index(n)]
-                                        for n in unexplored_neighbors])
+            unexplored_probabilities = np.array(
+                [
+                    probabilities[neighbors.index(n)]
+                    for n in unexplored_neighbors
+                ]
+            )
             # normalize the remaining probability values so that the sigma
             # additivity holds for the entire sample space
             unexplored_probabilities /= unexplored_probabilities.sum()
-            move = np.random.choice(unexplored_neighbors, p=unexplored_probabilities)
+            move = np.random.choice(
+                unexplored_neighbors, p=unexplored_probabilities
+            )
         else:
             move = np.random.choice(neighbors, p=probabilities)
-        
+
         return move
-    
+
 
 class BasicPheromoneUpdate(PheromoneUpdateStrategy):
-    def update_pheromone(self, pheromone: Dict[Tuple[int, int], float],
-                         paths: List[Tuple[List[int], int]],
-                         decay: float,
-                         n_best: int) -> Dict[Tuple[int, int], float]:
+    def update_pheromone(
+        self,
+        pheromone: Dict[Tuple[int, int], float],
+        paths: List[Tuple[List[int], int]],
+        decay: float,
+        n_best: int,
+    ) -> Dict[Tuple[int, int], float]:
         """
         Updates the pheromone levels on the graph edges based on
         the paths found by the ants.
-        
+
         Parameters:
             pheromone: A dictionary containing the current pheromone levels
                 for each edge in the graph.
             paths: A list of tuples where each tuple contains a path and its length.
             decay: The decay factor applied to the pheromones to simulate evaporation.
             n_best: The number of best paths to consider for pheromone updates.
-            
+
         Returns:
             The updated pheromone levels for each edge in the graph.
         """
@@ -136,9 +160,11 @@ class BasicPheromoneUpdate(PheromoneUpdateStrategy):
         # best paths found by the ants
         for path, length in sorted_paths[:n_best]:
             for move in zip(path[:-1], path[1:]):
-                set_pheromone_value(pheromone, move,
-                                    get_pheromone_value(pheromone, move) +
-                                    1.0 / length)
+                set_pheromone_value(
+                    pheromone,
+                    move,
+                    get_pheromone_value(pheromone, move) + 1.0 / length,
+                )
         # apply pheromone decay
         # reducing the pheromone levels on all edges to simulate
         # the natural evaporation of pheromones over time
@@ -146,18 +172,19 @@ class BasicPheromoneUpdate(PheromoneUpdateStrategy):
         return pheromone
 
 
-# The necessity of this function stems from the way that NetworkX represents 
+# The necessity of this function stems from the way that NetworkX represents
 # undirected graphs, where we are not sure whether the edge between two
 # nodes u and v is stored as (u, v) or (v, u).
-def get_pheromone_value(pheromone: Dict[Tuple[int, int], float],
-                        edge: Tuple[int, int]) -> float:
+def get_pheromone_value(
+    pheromone: Dict[Tuple[int, int], float], edge: Tuple[int, int]
+) -> float:
     """
     Retrieve the pheromone value.
-    
+
     Parameters:
         pheromone: Dictionary containg pheromone values for each edge.
         edge: Edge used for retrieval.
-        
+
     Returns:
         Pheromone value for the edge.
     """
@@ -166,12 +193,14 @@ def get_pheromone_value(pheromone: Dict[Tuple[int, int], float],
 
 
 # The reasoning is similar to get_pheromone_value function.
-def set_pheromone_value(pheromone: Dict[Tuple[int, int], float],
-                        edge: Tuple[int, int],
-                        value: float):
+def set_pheromone_value(
+    pheromone: Dict[Tuple[int, int], float],
+    edge: Tuple[int, int],
+    value: float,
+):
     """
     Set the pheromone value provided.
-    
+
     Parameters:
         pheromone: Dictionary containg pheromone values for each edge.
         edge: Edge used for updating.
