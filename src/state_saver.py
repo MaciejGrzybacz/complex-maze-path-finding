@@ -1,3 +1,8 @@
+"""
+This module contains functions for saving the state
+of the algorithm after each iteration into files.
+"""
+
 import json
 from typing import List, Tuple, Dict
 
