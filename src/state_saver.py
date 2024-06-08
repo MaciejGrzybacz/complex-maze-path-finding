@@ -20,13 +20,24 @@ def save_state(
         shortest_path: The shortest path found.
         filepath: Path to the JSON file.
     """
+    # Convert values to standard Python data types
+    pheromone = {f"{k[0]}-{k[1]}": float(v) for k, v in pheromone.items()}
+    
+    all_paths = [
+        {"path": [int(node) for node in path],
+         "length": int(length)} for path, length in all_paths 
+    ]
+    
+    shortest_path = {
+        "path": [int(node) for node in shortest_path[0]],
+        "length": int(shortest_path[1])    
+    }
+    
     state = {
         "iteration": iteration,
-        "pheromone": {f"{k[0]}-{k[1]}": v for k, v in pheromone.items()},
-        "all_paths": [
-            {"path": path, "length": length} for path, length in all_paths
-        ],
-        "shortest_path": {"path": shortest_path[0], "length": shortest_path[1]}
+        "pheromone": pheromone,
+        "all_paths": all_paths,
+        "shortest_path": shortest_path
     }
     
     with open(filepath, mode="a") as file:
