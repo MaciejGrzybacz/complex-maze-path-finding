@@ -10,7 +10,7 @@ from typing import List, Tuple
 
 from .aco_strategies import MoveSelectionStrategy, PheromoneUpdateStrategy
 from .aco_strategies import PheromoneBasedMoveSelection, BasicPheromoneUpdate
-
+from .state_saver import save_state
 
 class AntColonyOptimization:
     def __init__(
@@ -20,10 +20,11 @@ class AntColonyOptimization:
         n_best: int,
         n_iterations: int,
         decay: float,
+        filename: str,
         alpha: float = 1,
         beta: float = 1,
         move_selection_strategy: MoveSelectionStrategy = None,
-        pheromone_update_strategy: PheromoneUpdateStrategy = None,
+        pheromone_update_strategy: PheromoneUpdateStrategy = None
     ):
         """
         Initialize ACO algorithm with necessary parameters.
@@ -35,6 +36,8 @@ class AntColonyOptimization:
             n_best: The number of best ants whose paths will be used
                 to update the pheromone levels.
             n_iterations: The number of iterations the algorithm will run.
+            filename: The name of the file that will contain the state of the
+                algorithm after each iteration.
             decay: The rate at which the pheromone decays after each iteration.
             alpha: The influence of the pheromone levels on the move decision.
             beta: The influence of the heuristic information on the move
@@ -48,6 +51,7 @@ class AntColonyOptimization:
         self.n_ants = n_ants
         self.n_best = n_best
         self.n_iterations = n_iterations
+        self.filename = filename
         self.decay = decay
         self.alpha = alpha
         self.beta = beta
@@ -81,7 +85,7 @@ class AntColonyOptimization:
         # shortest path found across all iterations
         all_time_shortest_path = ("placeholder", float("inf"))
 
-        for _ in range(self.n_iterations):
+        for iteration in range(self.n_iterations):
             # construct a path for all ants from start to end
             all_paths = self._construct_colony_paths(start, end)
             # update the pheromone on the edges based on the paths
@@ -95,6 +99,10 @@ class AntColonyOptimization:
             if shortest_path[1] < all_time_shortest_path[1]:
                 all_time_shortest_path = shortest_path
 
+            save_state(iteration=iteration, pheromone=self.pheromone,
+                       all_paths=all_paths, shortest_path=all_time_shortest_path,
+                       filepath=self.filename)
+            
         return all_time_shortest_path
 
     def _construct_colony_paths(
