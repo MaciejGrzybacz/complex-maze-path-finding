@@ -10,6 +10,8 @@ from src.display_maze import Drawer, c
 
 import networkx as nx  # type: ignore
 
+from src.state_loader import filter_states, load_state_by_iteration, load_all_states
+
 
 def ensure_undirected_with_symmetry(graph: nx.Graph) -> nx.Graph:
     """
@@ -33,18 +35,19 @@ def ensure_undirected_with_symmetry(graph: nx.Graph) -> nx.Graph:
 
 
 if __name__ == "__main__":
-    ROWS = 12
-    COLS = 12
+    ROWS = 10
+    COLS = 10
     CELL_SIZE = 40
+    ITERATIONS=3
 
     maze = generate_maze(ROWS, COLS)
     graph = convert_grid_to_graph(maze)
 
     aco = AntColonyOptimization(
         graph,
-        n_ants=20,
+        n_ants=100,
         n_best=3,
-        n_iterations=10,
+        n_iterations=ITERATIONS,
         filename="data/aco_state.jsonl",
         decay=0.5,
         alpha=1,
@@ -59,8 +62,11 @@ if __name__ == "__main__":
     )
 
     drawer = Drawer(ROWS, COLS, CELL_SIZE)
-    drawer.setup()
-    drawer.draw_maze(maze)
-    drawer.draw_path(aco_path, c["blue"], draw_ends=True)
-    drawer.draw_path(dijkstra_path, c["red"], True)
+    drawer.setup(maze)
+    drawer.draw_maze()
+    file_path = "data/aco_state.jsonl"
+    for i in range(ITERATIONS):
+        state = load_state_by_iteration(file_path, i)
+        drawer.draw_ants(state['all_paths'], maze, t_delta=0.5)
+    drawer.draw_maze()
     drawer.display_loop()
