@@ -42,9 +42,10 @@ if __name__ == "__main__":
 
     aco = AntColonyOptimization(
         graph,
-        n_ants=10,
+        n_ants=20,
         n_best=3,
         n_iterations=10,
+        filename="data/aco_state.jsonl",
         decay=0.5,
         alpha=1,
         beta=1,
