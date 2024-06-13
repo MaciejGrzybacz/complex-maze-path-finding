@@ -8,6 +8,7 @@ with the ants exploring it trying to find the shortest path.
 
 import networkx as nx  # type: ignore
 import pygame  # type: ignore
+from collections import Counter
 from pygame.color import THECOLORS as c
 from time import sleep
 from typing import List, Tuple, Dict
@@ -38,7 +39,7 @@ class Drawer:
         self.width, self.height = cols * cell_size, rows * cell_size
         self.sleep_time = sleep_time
 
-    def setup(self):
+    def setup(self, maze):
         """
         Setup, pygame init
 
@@ -50,13 +51,29 @@ class Drawer:
         """
 
         pygame.init()
+        pygame.font.init()  # you have to call this at the start,
+        # if you want to use this module.
+        self.font = pygame.font.SysFont('Comic Sans MS', 16)
+
         self.screen = pygame.display.set_mode((self.width, self.height))
+        self.ant_image = pygame.image.load("antcolony.png")
+        self.ant_image=pygame.transform.scale(self.ant_image, (self.cell_size / 2, self.cell_size / 2))
+
         pygame.display.set_caption("Maze")
         self.screen.fill(c["white"])
 
-    def draw_maze(
-        self,
-        maze: nx.Graph,
+        self.maze = pygame.surface.Surface((self.width, self.height))
+        self._setup_maze(maze)
+
+        self.ant_surface = pygame.surface.Surface((self.width, self.height), pygame.SRCALPHA, 32)
+        self.ant_surface.convert_alpha()
+
+    def draw_maze(self):
+        self.screen.blit(self.maze, (0, 0))
+
+    def _setup_maze(
+            self,
+            maze: nx.Graph,
     ):
         """
         Display maze given by a graph.
@@ -75,6 +92,7 @@ class Drawer:
             Nothing
         """
 
+        self.maze.fill(c["white"])
         full = nx.grid_2d_graph(self.rows, self.cols)
         edges = maze.edges()
 
@@ -102,34 +120,34 @@ class Drawer:
 
                 # draw wall
                 pygame.draw.line(
-                    self.screen, c["black"], (x1, y1), (x2, y2), 2
+                    self.maze, c["black"], (x1, y1), (x2, y2), 2
                 )
 
         # border
         border_width = int(self.cell_size / 10)
         pygame.draw.line(
-            self.screen,
+            self.maze,
             DEFAULT_BORDER_COLOR,
             (0, self.cell_size),
             (0, self.height),
             border_width,
         )
         pygame.draw.line(
-            self.screen,
+            self.maze,
             DEFAULT_BORDER_COLOR,
             (0, 0),
             (self.width, 0),
             border_width,
         )
         pygame.draw.line(
-            self.screen,
+            self.maze,
             DEFAULT_BORDER_COLOR,
             (0, self.height - 1),
             (self.width, self.height - 1),
             border_width,
         )
         pygame.draw.line(
-            self.screen,
+            self.maze,
             DEFAULT_BORDER_COLOR,
             (self.width - 1, 0),
             (self.width - 1, self.height - self.cell_size),
@@ -140,9 +158,9 @@ class Drawer:
         pygame.display.flip()
 
     def draw_pheromone(
-        self,
-        pheromone: Dict[Tuple[int, int], float],
-        color: Tuple[int, int, int, int] = c["red"],
+            self,
+            pheromone: Dict[Tuple[int, int], float],
+            color: Tuple[int, int, int, int] = c["red"],
     ):
         """
         Draw pheromone levels in maze
@@ -157,11 +175,11 @@ class Drawer:
         pass  # TODO
 
     def draw_path(
-        self,
-        path: List[int],
-        color: Tuple[int, int, int, int] = c["blue"],
-        dash: bool = False,
-        draw_ends: bool = False,
+            self,
+            path: List[int],
+            color: Tuple[int, int, int, int] = c["blue"],
+            dash: bool = False,
+            draw_ends: bool = False,
     ):
         """
         Draw path through maze
@@ -266,6 +284,67 @@ class Drawer:
 
         # same square as before
         pygame.display.flip()
+
+    def draw_ants(
+            self,
+            paths: List[List[int]],
+            maze,
+            color: Tuple[int, int, int, int] = c["black"],
+            t_delta=0.5,
+    ):
+        """
+        Draw ants going through maze in one iteration
+
+        Args:
+            paths: paths of ants
+            color: ant color
+            t_delta: time in seconds of each day
+
+        Returns:
+            Nothing
+        """
+
+        paths = [path['path'] for path in paths]
+        longest = max(len(path) for path in paths)
+        ant_size = self.cell_size / 4
+
+        def _ants_on_iteration(i):
+            return [path[i] for path in paths if len(path) > i]
+
+        for i in range(longest):
+            self.draw_maze()
+
+            ants = _ants_on_iteration(i)
+            ant_counts = Counter(ants)
+            for ant, cnt in ant_counts.items():
+                uy, ux = divmod(ant, self.cols)
+                self._draw_ant_count(cnt, ux, uy)
+                self._draw_ant(ant_size, color, ux, uy)
+
+            pygame.display.flip()
+            sleep(t_delta)
+
+    def _draw_ant(self, ant_size, color, ux, uy):
+        # pygame.draw.ellipse(
+        #     self.screen,
+        #     color,
+        #     (
+        #         (
+        #             self.cell_size * (ux + 1 / 2) - ant_size / 2,
+        #             self.cell_size * (uy + 1 / 2) - ant_size / 2,
+        #         ),
+        #         (ant_size, ant_size),
+        #     ),
+        # )
+
+        self.screen.blit(self.ant_image, (ux * self.cell_size, uy * self.cell_size))
+
+
+    def _draw_ant_count(self, cnt, ux, uy):
+        x = self.cell_size / 2 + ux * self.cell_size
+        y = self.cell_size / 2 + uy * self.cell_size
+        text_surface = self.font.render(f"{cnt}", False, (0, 0, 0))
+        self.screen.blit(text_surface, (x, y))
 
     def display_loop(self):
         """

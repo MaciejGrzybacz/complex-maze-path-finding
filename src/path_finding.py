@@ -85,6 +85,9 @@ class AntColonyOptimization:
         # shortest path found across all iterations
         all_time_shortest_path = ("placeholder", float("inf"))
 
+        # remove existing file contents
+        open(self.filename, 'w').close()
+
         for iteration in range(self.n_iterations):
             # construct a path for all ants from start to end
             all_paths = self._construct_colony_paths(start, end)
