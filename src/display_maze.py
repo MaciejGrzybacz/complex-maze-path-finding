@@ -11,7 +11,8 @@ import pygame  # type: ignore
 from collections import Counter
 from pygame.color import THECOLORS as c
 from time import sleep
-from typing import List, Tuple, Dict, Any
+from typing import List, Tuple, Dict
+from math import exp
 
 from src.state_loader import (
     load_state_by_iteration,
@@ -22,7 +23,7 @@ Color = Tuple[int, int, int, int]
 
 
 DEFAULT_BORDER_COLOR = c["black"]
-DEFAULT_SLEEP_TIME = 0.02
+DEFAULT_SLEEP_TIME = 0.5
 
 
 class Drawer:
@@ -35,7 +36,7 @@ class Drawer:
         rows: int,
         cols: int,
         cell_size: int = 20,
-        sleep_time: float = DEFAULT_SLEEP_TIME,
+        t_delta: float = DEFAULT_SLEEP_TIME,
     ):
         """
         Initialize maze drawer with some parameters
@@ -45,7 +46,7 @@ class Drawer:
         self.rows = rows
         self.cols = cols
         self.width, self.height = cols * cell_size, rows * cell_size
-        self.sleep_time = sleep_time
+        self.t_delta = t_delta
 
     def setup(self, maze):
         """
@@ -72,8 +73,9 @@ class Drawer:
         pygame.display.set_caption("Maze")
         self.screen.fill(c["white"])
 
+        self.edges = maze.edges()
         self.maze = pygame.surface.Surface((self.width, self.height))
-        self._setup_maze(maze)
+        self._draw_maze(maze)
 
         self.ant_surface = pygame.surface.Surface(
             (self.width, self.height), pygame.SRCALPHA, 32
@@ -83,7 +85,7 @@ class Drawer:
     def draw_maze(self):
         self.screen.blit(self.maze, (0, 0))
 
-    def _setup_maze(
+    def _draw_maze(
         self,
         maze: nx.Graph,
     ):
@@ -106,10 +108,9 @@ class Drawer:
 
         self.maze.fill(c["white"])
         full = nx.grid_2d_graph(self.rows, self.cols)
-        edges = maze.edges()
 
         for u, v in full.edges():
-            if (u, v) not in edges:
+            if (u, v) not in self.edges:
                 if u[0] == v[0]:  # horizontal
                     x1 = (
                         u[1] + v[1]
@@ -182,7 +183,28 @@ class Drawer:
         Returns:
             Nothing
         """
-        pass  # TODO
+        for k, v in pheromone.items():
+            uy, ux = divmod(k[0], self.cols)
+            vy, vx = divmod(k[1], self.cols)
+            intensity = 1 / (1 + exp(4 * (v - 1)))
+
+            pygame.draw.line(
+                self.maze,
+                (
+                    int(255 * intensity),
+                    0,
+                    0,
+                ),
+                (
+                    ux * self.cell_size + self.cell_size / 2,
+                    uy * self.cell_size + self.cell_size / 2,
+                ),
+                (
+                    vx * self.cell_size + self.cell_size / 2,
+                    vy * self.cell_size + self.cell_size / 2,
+                ),
+                int(self.cell_size / 8),
+            )
 
     def draw_path(
         self,
@@ -297,47 +319,30 @@ class Drawer:
 
     def draw_ants(
         self,
-        paths: List[Dict[str, Any]],
+        paths: List[List[int]],
+        iter: int,
         color: Color = c["black"],
-        t_delta: float = 0.5,
-    ) -> bool:
+    ):
         """
         Draw ants going through maze in one iteration
 
         Args:
             paths: paths of ants
+            iter: number of current iteration
             color: ant color
-            t_delta: time in seconds of each day
 
         Returns:
-            Boolean indicating if application exited
+            Nothing
         """
 
-        paths = [path["path"] for path in paths]
-        longest = max(len(path) for path in paths)
         ant_size = self.cell_size / 4
+        ants = [path[iter] for path in paths if len(path) > iter]
+        ant_counts = Counter(ants)
 
-        def _ants_on_iteration(i):
-            return [path[i] for path in paths if len(path) > i]
-
-        for i in range(longest):
-            self.draw_maze()
-
-            ants = _ants_on_iteration(i)
-            ant_counts = Counter(ants)
-            for ant, cnt in ant_counts.items():
-                uy, ux = divmod(ant, self.cols)
-                self._draw_ant_count(cnt, ux, uy)
-                self._draw_ant(ant_size, color, ux, uy)
-
-            pygame.display.flip()
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    return False
-
-            sleep(t_delta)
-        return True
+        for ant, cnt in ant_counts.items():
+            uy, ux = divmod(ant, self.cols)
+            self._draw_ant_count(cnt, ux, uy)
+            self._draw_ant(ant_size, color, ux, uy)
 
     def _draw_ant(
         self,
@@ -365,7 +370,12 @@ class Drawer:
             ),
         )
 
-    def _draw_ant_count(self, cnt, ux, uy):
+    def _draw_ant_count(
+        self,
+        cnt: int,
+        ux: int,
+        uy: int,
+    ):
         x = self.cell_size / 2 + ux * self.cell_size
         y = self.cell_size / 2 + uy * self.cell_size
         text_surface = self.font.render(f"{cnt}", False, (0, 0, 0))
@@ -375,7 +385,6 @@ class Drawer:
         self,
         iterations: int,
         file_path: str = DEFAULT_FILE_PATH,
-        t_delta: float = 0.5,
     ):
         """
         Simple event loop for displaying graphics, quits when window is closed
@@ -387,8 +396,36 @@ class Drawer:
             Nothing
         """
 
+        end = False
+
         for i in range(iterations):
             state = load_state_by_iteration(file_path, i)
-            if not self.draw_ants(state["all_paths"], t_delta=t_delta):
+
+            paths = state["all_paths"]
+            paths = [path["path"] for path in paths]
+            longest = max(len(path) for path in paths)
+
+            pheromone = state["pheromone"]
+            pheromones = {
+                tuple(map(int, k.split("-"))): v for k, v in pheromone.items()
+            }
+
+            for i in range(longest):
+                self.draw_maze()
+                self.draw_pheromone(pheromones)
+                self.draw_ants(paths, i)
+                pygame.display.flip()
+
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        end = True
+                        break
+
+                if end:
+                    break
+                sleep(self.t_delta)
+
+            if end:
                 break
-            sleep(self.sleep_time)
+
+        pygame.quit()
