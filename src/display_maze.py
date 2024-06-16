@@ -11,7 +11,15 @@ import pygame  # type: ignore
 from collections import Counter
 from pygame.color import THECOLORS as c
 from time import sleep
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Any
+
+from src.state_loader import (
+    load_state_by_iteration,
+    DEFAULT_FILE_PATH,
+)
+
+Color = Tuple[int, int, int, int]
+
 
 DEFAULT_BORDER_COLOR = c["black"]
 DEFAULT_SLEEP_TIME = 0.02
@@ -53,11 +61,13 @@ class Drawer:
         pygame.init()
         pygame.font.init()  # you have to call this at the start,
         # if you want to use this module.
-        self.font = pygame.font.SysFont('Comic Sans MS', 16)
+        self.font = pygame.font.SysFont("Comic Sans MS", 16)
 
         self.screen = pygame.display.set_mode((self.width, self.height))
         self.ant_image = pygame.image.load("antcolony.png")
-        self.ant_image=pygame.transform.scale(self.ant_image, (self.cell_size / 2, self.cell_size / 2))
+        self.ant_image = pygame.transform.scale(
+            self.ant_image, (self.cell_size / 2, self.cell_size / 2)
+        )
 
         pygame.display.set_caption("Maze")
         self.screen.fill(c["white"])
@@ -65,15 +75,17 @@ class Drawer:
         self.maze = pygame.surface.Surface((self.width, self.height))
         self._setup_maze(maze)
 
-        self.ant_surface = pygame.surface.Surface((self.width, self.height), pygame.SRCALPHA, 32)
+        self.ant_surface = pygame.surface.Surface(
+            (self.width, self.height), pygame.SRCALPHA, 32
+        )
         self.ant_surface.convert_alpha()
 
     def draw_maze(self):
         self.screen.blit(self.maze, (0, 0))
 
     def _setup_maze(
-            self,
-            maze: nx.Graph,
+        self,
+        maze: nx.Graph,
     ):
         """
         Display maze given by a graph.
@@ -119,17 +131,15 @@ class Drawer:
                     y2 = y1
 
                 # draw wall
-                pygame.draw.line(
-                    self.maze, c["black"], (x1, y1), (x2, y2), 2
-                )
+                pygame.draw.line(self.maze, c["black"], (x1, y1), (x2, y2), 2)
 
         # border
         border_width = int(self.cell_size / 10)
         pygame.draw.line(
             self.maze,
             DEFAULT_BORDER_COLOR,
-            (0, self.cell_size),
-            (0, self.height),
+            (0, 0),
+            (0, self.height - self.cell_size),
             border_width,
         )
         pygame.draw.line(
@@ -149,8 +159,8 @@ class Drawer:
         pygame.draw.line(
             self.maze,
             DEFAULT_BORDER_COLOR,
-            (self.width - 1, 0),
-            (self.width - 1, self.height - self.cell_size),
+            (self.width - 1, self.cell_size),
+            (self.width - 1, self.height),
             border_width,
         )
 
@@ -158,9 +168,9 @@ class Drawer:
         pygame.display.flip()
 
     def draw_pheromone(
-            self,
-            pheromone: Dict[Tuple[int, int], float],
-            color: Tuple[int, int, int, int] = c["red"],
+        self,
+        pheromone: Dict[Tuple[int, int], float],
+        color: Color = c["red"],
     ):
         """
         Draw pheromone levels in maze
@@ -175,11 +185,11 @@ class Drawer:
         pass  # TODO
 
     def draw_path(
-            self,
-            path: List[int],
-            color: Tuple[int, int, int, int] = c["blue"],
-            dash: bool = False,
-            draw_ends: bool = False,
+        self,
+        path: List[int],
+        color: Color = c["blue"],
+        dash: bool = False,
+        draw_ends: bool = False,
     ):
         """
         Draw path through maze
@@ -286,12 +296,11 @@ class Drawer:
         pygame.display.flip()
 
     def draw_ants(
-            self,
-            paths: List[List[int]],
-            maze,
-            color: Tuple[int, int, int, int] = c["black"],
-            t_delta=0.5,
-    ):
+        self,
+        paths: List[Dict[str, Any]],
+        color: Color = c["black"],
+        t_delta: float = 0.5,
+    ) -> bool:
         """
         Draw ants going through maze in one iteration
 
@@ -301,10 +310,10 @@ class Drawer:
             t_delta: time in seconds of each day
 
         Returns:
-            Nothing
+            Boolean indicating if application exited
         """
 
-        paths = [path['path'] for path in paths]
+        paths = [path["path"] for path in paths]
         longest = max(len(path) for path in paths)
         ant_size = self.cell_size / 4
 
@@ -322,23 +331,39 @@ class Drawer:
                 self._draw_ant(ant_size, color, ux, uy)
 
             pygame.display.flip()
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    return False
+
             sleep(t_delta)
+        return True
 
-    def _draw_ant(self, ant_size, color, ux, uy):
-        # pygame.draw.ellipse(
-        #     self.screen,
-        #     color,
-        #     (
-        #         (
-        #             self.cell_size * (ux + 1 / 2) - ant_size / 2,
-        #             self.cell_size * (uy + 1 / 2) - ant_size / 2,
-        #         ),
-        #         (ant_size, ant_size),
-        #     ),
-        # )
+    def _draw_ant(
+        self,
+        ant_size: float,
+        color: Color,
+        ux: int,
+        uy: int,
+        dot: bool = True,
+    ):
+        if dot:
+            self.screen.blit(
+                self.ant_image, (ux * self.cell_size, uy * self.cell_size)
+            )
+            return
 
-        self.screen.blit(self.ant_image, (ux * self.cell_size, uy * self.cell_size))
-
+        pygame.draw.ellipse(
+            self.screen,
+            color,
+            (
+                (
+                    self.cell_size * (ux + 1 / 2) - ant_size / 2,
+                    self.cell_size * (uy + 1 / 2) - ant_size / 2,
+                ),
+                (ant_size, ant_size),
+            ),
+        )
 
     def _draw_ant_count(self, cnt, ux, uy):
         x = self.cell_size / 2 + ux * self.cell_size
@@ -346,7 +371,12 @@ class Drawer:
         text_surface = self.font.render(f"{cnt}", False, (0, 0, 0))
         self.screen.blit(text_surface, (x, y))
 
-    def display_loop(self):
+    def draw(
+        self,
+        iterations: int,
+        file_path: str = DEFAULT_FILE_PATH,
+        t_delta: float = 0.5,
+    ):
         """
         Simple event loop for displaying graphics, quits when window is closed
 
@@ -357,11 +387,8 @@ class Drawer:
             Nothing
         """
 
-        running = True
-        while running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
+        for i in range(iterations):
+            state = load_state_by_iteration(file_path, i)
+            if not self.draw_ants(state["all_paths"], t_delta=t_delta):
+                break
             sleep(self.sleep_time)
-
-        pygame.quit()

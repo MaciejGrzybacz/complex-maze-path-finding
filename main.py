@@ -6,11 +6,9 @@ from src.path_finding import AntColonyOptimization
 from src.evaluation import compare_with_dijkstra
 from src.graph_generation import generate_maze
 from src.graph_utils import convert_grid_to_graph, node_tuple_to_int
-from src.display_maze import Drawer, c
+from src.display_maze import Drawer
 
 import networkx as nx  # type: ignore
-
-from src.state_loader import filter_states, load_state_by_iteration, load_all_states
 
 
 def ensure_undirected_with_symmetry(graph: nx.Graph) -> nx.Graph:
@@ -38,7 +36,7 @@ if __name__ == "__main__":
     ROWS = 10
     COLS = 10
     CELL_SIZE = 40
-    ITERATIONS=3
+    ITERATIONS = 3
 
     maze = generate_maze(ROWS, COLS)
     graph = convert_grid_to_graph(maze)
@@ -63,10 +61,7 @@ if __name__ == "__main__":
 
     drawer = Drawer(ROWS, COLS, CELL_SIZE)
     drawer.setup(maze)
-    drawer.draw_maze()
-    file_path = "data/aco_state.jsonl"
-    for i in range(ITERATIONS):
-        state = load_state_by_iteration(file_path, i)
-        drawer.draw_ants(state['all_paths'], maze, t_delta=0.5)
-    drawer.draw_maze()
-    drawer.display_loop()
+    drawer.draw(
+        ITERATIONS,
+        file_path="data/aco_state.jsonl",
+    )
