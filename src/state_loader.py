@@ -5,7 +5,7 @@ state_saver module.
 """
 
 import json
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Callable
 
 DEFAULT_FILE_PATH = "data/aco_state.jsonl"
 
@@ -30,7 +30,10 @@ def load_all_states(file_path: str) -> List[Dict[str, Any]]:
     return states
 
 
-def load_state_by_iteration(file_path: str, iteration: int) -> Dict[str, Any]:
+def load_state_by_iteration(
+    file_path: str,
+    iteration: int,
+) -> Dict[str, Any]:
     """
     Load a specific iteration's state from the JSON Lines file.
 
@@ -50,7 +53,10 @@ def load_state_by_iteration(file_path: str, iteration: int) -> Dict[str, Any]:
     raise ValueError(f"Iteration {iteration} not found in {file_path}")
 
 
-def filter_states(file_path: str, condition: Any) -> List[Dict[str, Any]]:
+def filter_states(
+    file_path: str,
+    condition: Callable[[Any], bool],
+) -> List[Dict[str, Any]]:
     """
     Load states that meet a specific condition from the JSON Lines file.
 

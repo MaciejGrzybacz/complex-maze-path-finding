@@ -60,8 +60,7 @@ class Drawer:
         """
 
         pygame.init()
-        pygame.font.init()  # you have to call this at the start,
-        # if you want to use this module.
+        pygame.font.init()
         self.font = pygame.font.SysFont("Comic Sans MS", 16)
 
         self.screen = pygame.display.set_mode((self.width, self.height))
@@ -390,7 +389,9 @@ class Drawer:
         Simple event loop for displaying graphics, quits when window is closed
 
         Args:
-            Nothing
+            iterations: number of iterations
+            file_path: path to file containing saved states of algorithm
+            iterations
 
         Returns:
             Nothing
@@ -406,8 +407,13 @@ class Drawer:
             longest = max(len(path) for path in paths)
 
             pheromone = state["pheromone"]
-            pheromones = {
-                tuple(map(int, k.split("-"))): v for k, v in pheromone.items()
+
+            def getNumbers(s: str) -> Tuple[int, int]:
+                t = tuple(map(int, s.split("-")))
+                return (t[0], t[1])
+
+            pheromones: Dict[Tuple[int, int], float] = {
+                getNumbers(k): float(v) for k, v in pheromone.items()
             }
 
             for i in range(longest):

@@ -80,23 +80,25 @@ class PheromoneBasedMoveSelection(MoveSelectionStrategy):
         edges = graph.edges(current_node)
 
         neighbors = []
-        pheromone_values = []
+        pheromone_list = []
         for edge in edges:
             neighbor = edge[1] if edge[0] == current_node else edge[0]
             neighbors.append(neighbor)
             # calulate pheromone values for each edge adjusted by
             # alpha parameter
             pheromone_value = get_pheromone_value(pheromone, edge) ** alpha
-            pheromone_values.append(pheromone_value)
+            pheromone_list.append(pheromone_value)
 
-        pheromone_values = np.array(pheromone_values)
+        pheromone_values = np.array(pheromone_list)
 
-        # here we use the node degree heuristic (number of edges connected to it)
+        # here we use the node degree heuristic
+        # (number of edges connected to it)
         # this means that the nodes with fewer connections have a higher
         # heuristic value, the parameter beta controls the influence of this
         # heuristic i.e. a higher value of beta gives more importance to this
         # heuristic in the decision-making process for edge selection
-        # calculate the heuristic value for each neighboring node adjusted by beta
+        # calculate the heuristic value for each neighboring node adjusted by
+        # beta
         attractiveness = np.array(
             [1.0 / graph.degree(neighbor) ** beta for neighbor in neighbors]
         )
@@ -146,8 +148,10 @@ class BasicPheromoneUpdate(PheromoneUpdateStrategy):
         Parameters:
             pheromone: A dictionary containing the current pheromone levels
                 for each edge in the graph.
-            paths: A list of tuples where each tuple contains a path and its length.
-            decay: The decay factor applied to the pheromones to simulate evaporation.
+            paths: A list of tuples where each tuple contains a path and
+                its length.
+            decay: The decay factor applied to the pheromones to simulate
+                evaporation.
             n_best: The number of best paths to consider for pheromone updates.
 
         Returns:
