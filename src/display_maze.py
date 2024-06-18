@@ -186,14 +186,14 @@ class Drawer:
             Nothing
         """
         max_pheromone = max(pheromone.values())
-        
+
         for k, v in pheromone.items():
             uy, ux = divmod(k[0], self.cols)
             vy, vx = divmod(k[1], self.cols)
             intensity = 1.0 - v / max_pheromone
 
             pygame.draw.line(
-                 self.maze_surface,
+                self.maze_surface,
                 (
                     int(255 * intensity),
                     int(255 * intensity),

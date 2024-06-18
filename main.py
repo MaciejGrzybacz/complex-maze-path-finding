@@ -17,6 +17,10 @@ if __name__ == "__main__":
     COLS = 10
     CELL_SIZE = 40
     ITERATIONS = 3
+    ANTS = 5
+
+    with open("data/settings.txt", "w") as s:
+        s.write(str((ROWS, COLS, ITERATIONS, ANTS)))
 
     maze = generate_maze(ROWS, COLS)
     with open("data/maze.txt", "w") as m:
@@ -25,7 +29,7 @@ if __name__ == "__main__":
 
     aco = AntColonyOptimization(
         graph,
-        n_ants=1,
+        n_ants=ANTS,
         n_best=3,
         n_iterations=ITERATIONS,
         filename="data/aco_state.jsonl",
