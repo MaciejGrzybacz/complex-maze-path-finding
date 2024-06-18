@@ -141,23 +141,45 @@ class AntColonyOptimization:
         Returns:
             The path constructed by the ant.
         """
-        path = [start]
-        # This set stored all the already explored nodes in the graph.
-        # We are going to prioritize exploration of unexplored nodes.
-        explored = {start}
-        while path[-1] != end:
-            move = self.move_selection_strategy.select_move(
+        return list(reversed(
+            self._construct_path_dfs(start, end, set())
+        ))
+
+    def _construct_path_dfs(self, node: int, end: int, explored: set[int]) -> List[int]:
+        """
+                Constructs a path using dfs algorithm.
+
+                Parameters:
+                    start: The start node.
+                    end: The end node.
+                    explored: Set of already explored nodes
+
+                Returns:
+                    The path constructed by the ant.
+                """
+        explored.add(node)
+        if node == end:
+            return [node]
+
+        def _next_move():
+            return self.move_selection_strategy.select_move(
                 self.graph,
                 self.pheromone,
                 explored,
-                path[-1],
+                node,
                 self.alpha,
                 self.beta,
             )
-            path.append(move)
-            explored.add(move)
 
-        return path
+        v = _next_move()
+        while v:
+            result = self._construct_path_dfs(v, end, explored)
+            if result:
+                result.append(node)
+                return result
+            v = _next_move()
+
+        return []
 
     @staticmethod
     def path_length(path: List[int]) -> int:

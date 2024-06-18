@@ -126,7 +126,7 @@ class PheromoneBasedMoveSelection(MoveSelectionStrategy):
                 unexplored_neighbors, p=unexplored_probabilities
             )
         else:
-            move = np.random.choice(neighbors, p=probabilities)
+            move = None
 
         return move
 
