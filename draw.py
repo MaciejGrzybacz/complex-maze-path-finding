@@ -15,10 +15,11 @@ if __name__ == "__main__":
     ROWS = 10
     COLS = 10
     ITERATIONS = 3
+    ANTS = 20
 
     if isfile("data/settings.txt"):
         with open("data/settings.txt", "r") as s:
-            ROWS, COLS, ITERATIONS = eval(s.read())
+            ROWS, COLS, ITERATIONS, ANTS = eval(s.read())
 
     with open("data/maze.txt", "r") as m:
         maze = from_edgelist(eval(m.read()))
