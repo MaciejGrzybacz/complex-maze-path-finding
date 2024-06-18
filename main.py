@@ -8,6 +8,7 @@ from src.evaluation import compare_with_dijkstra
 from src.graph_generation import generate_maze
 from src.graph_utils import convert_grid_to_graph, node_tuple_to_int
 from src.display_maze import Drawer
+from networkx import to_edgelist  # type: ignore
 
 
 if __name__ == "__main__":
@@ -17,6 +18,8 @@ if __name__ == "__main__":
     ITERATIONS = 3
 
     maze = generate_maze(ROWS, COLS)
+    with open("data/maze.txt", "w") as m:
+        m.write(str(to_edgelist(maze)))
     graph = convert_grid_to_graph(maze)
 
     aco = AntColonyOptimization(
