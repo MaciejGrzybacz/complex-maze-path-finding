@@ -9,6 +9,7 @@ from src.graph_generation import generate_maze
 from src.graph_utils import convert_grid_to_graph, node_tuple_to_int
 from src.display_maze import Drawer
 from networkx import to_edgelist  # type: ignore
+from sys import argv
 
 
 if __name__ == "__main__":
@@ -40,7 +41,16 @@ if __name__ == "__main__":
         graph, lower_left_corner, upper_right_corner, aco
     )
 
-    drawer = Drawer(ROWS, COLS, CELL_SIZE)
+    if len(argv) > 1:
+        drawer = Drawer(
+            ROWS,
+            COLS,
+            CELL_SIZE,
+            float(argv[1]),
+        )
+    else:
+        drawer = Drawer(ROWS, COLS, CELL_SIZE)
+
     drawer.setup(maze)
     drawer.draw(
         ITERATIONS,
