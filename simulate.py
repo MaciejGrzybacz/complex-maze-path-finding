@@ -7,7 +7,7 @@ from src.path_finding import AntColonyOptimization
 from src.evaluation import compare_with_dijkstra
 from src.graph_generation import generate_maze
 from src.graph_utils import convert_grid_to_graph, node_tuple_to_int
-from src.display_maze import Drawer
+from networkx import write_gexf  # type: ignore
 
 
 if __name__ == "__main__":
@@ -18,6 +18,8 @@ if __name__ == "__main__":
 
     maze = generate_maze(ROWS, COLS)
     graph = convert_grid_to_graph(maze)
+    write_gexf(maze, "data/maze.gexf")
+    write_gexf(graph, "data/graph.gexf")
 
     aco = AntColonyOptimization(
         graph,
@@ -35,11 +37,4 @@ if __name__ == "__main__":
 
     aco_path, dijkstra_path = compare_with_dijkstra(
         graph, lower_left_corner, upper_right_corner, aco
-    )
-
-    drawer = Drawer(ROWS, COLS, CELL_SIZE)
-    drawer.setup(maze)
-    drawer.draw(
-        ITERATIONS,
-        file_path="data/aco_state.jsonl",
     )

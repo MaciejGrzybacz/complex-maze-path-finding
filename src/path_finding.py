@@ -7,6 +7,7 @@ the shortest path between to given nodes in a graph.
 
 import networkx as nx  # type: ignore
 from typing import List, Tuple
+import os
 
 from .aco_strategies import MoveSelectionStrategy, PheromoneUpdateStrategy
 from .aco_strategies import PheromoneBasedMoveSelection, BasicPheromoneUpdate

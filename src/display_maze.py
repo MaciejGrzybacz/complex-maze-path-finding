@@ -48,7 +48,10 @@ class Drawer:
         self.width, self.height = cols * cell_size, rows * cell_size
         self.t_delta = t_delta
 
-    def setup(self, maze):
+    def setup(
+        self,
+        maze: nx.Graph,
+    ):
         """
         Setup, pygame init
 
@@ -73,8 +76,9 @@ class Drawer:
         self.screen.fill(c["white"])
 
         self.edges = maze.edges()
-        self.maze = pygame.surface.Surface((self.width, self.height))
-        self._draw_maze(maze)
+        # self.maze = maze
+        self.maze_surface = pygame.surface.Surface((self.width, self.height))
+        self._draw_maze()
 
         self.ant_surface = pygame.surface.Surface(
             (self.width, self.height), pygame.SRCALPHA, 32
@@ -82,12 +86,9 @@ class Drawer:
         self.ant_surface.convert_alpha()
 
     def draw_maze(self):
-        self.screen.blit(self.maze, (0, 0))
+        self.screen.blit(self.maze_surface, (0, 0))
 
-    def _draw_maze(
-        self,
-        maze: nx.Graph,
-    ):
+    def _draw_maze(self):
         """
         Display maze given by a graph.
 
@@ -105,7 +106,7 @@ class Drawer:
             Nothing
         """
 
-        self.maze.fill(c["white"])
+        self.maze_surface.fill(c["white"])
         full = nx.grid_2d_graph(self.rows, self.cols)
 
         for u, v in full.edges():
@@ -131,33 +132,35 @@ class Drawer:
                     y2 = y1
 
                 # draw wall
-                pygame.draw.line(self.maze, c["black"], (x1, y1), (x2, y2), 2)
+                pygame.draw.line(
+                    self.maze_surface, c["black"], (x1, y1), (x2, y2), 2
+                )
 
         # border
         border_width = int(self.cell_size / 10)
         pygame.draw.line(
-            self.maze,
+            self.maze_surface,
             DEFAULT_BORDER_COLOR,
             (0, 0),
             (0, self.height - self.cell_size),
             border_width,
         )
         pygame.draw.line(
-            self.maze,
+            self.maze_surface,
             DEFAULT_BORDER_COLOR,
             (0, 0),
             (self.width, 0),
             border_width,
         )
         pygame.draw.line(
-            self.maze,
+            self.maze_surface,
             DEFAULT_BORDER_COLOR,
             (0, self.height - 1),
             (self.width, self.height - 1),
             border_width,
         )
         pygame.draw.line(
-            self.maze,
+            self.maze_surface,
             DEFAULT_BORDER_COLOR,
             (self.width - 1, self.cell_size),
             (self.width - 1, self.height),
@@ -188,7 +191,7 @@ class Drawer:
             intensity = 1 / (1 + exp(4 * (v - 1)))
 
             pygame.draw.line(
-                self.maze,
+                self.maze_surface,
                 (
                     int(255 * intensity),
                     0,

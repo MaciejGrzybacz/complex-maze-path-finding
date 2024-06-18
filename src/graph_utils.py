@@ -67,3 +67,24 @@ def convert_grid_to_graph(grid_graph: nx.Graph) -> nx.Graph:
         undirected_graph.add_edge(int_u, int_v)
 
     return undirected_graph
+
+
+def ensure_undirected_with_symmetry(graph: nx.Graph) -> nx.Graph:
+    """
+    Converts a graph to an undirected graph and ensures that both directions
+    of each edge are explicitly included.
+
+    Parameters:
+        graph: The graph to be converted.
+
+    Returns:
+        The undirected graph with symmetric edges.
+    """
+    undirected_graph = nx.Graph()
+    undirected_graph.add_nodes_from(graph.nodes())
+
+    for u, v in graph.edges():
+        undirected_graph.add_edge(u, v)
+        undirected_graph.add_edge(v, u)
+
+    return undirected_graph
