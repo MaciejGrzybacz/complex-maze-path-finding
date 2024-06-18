@@ -80,7 +80,11 @@ def _generate_maze_kruskal(rows: int, cols: int) -> nx.Graph:
     return mst
 
 
-def generate_maze(rows: int, cols: int, extra_edges: Optional[int] = None):
+def generate_maze(
+    rows: int,
+    cols: int,
+    extra_edges: Optional[int] = None,
+):
     """
     Generate a random maze. At least one cycle in the maze is guaranteed.
 

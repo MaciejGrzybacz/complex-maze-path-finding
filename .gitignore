@@ -131,6 +131,9 @@ venv.bak/
 .dmypy.json
 dmypy.json
 
+# ruff
+.ruff_cache/
+
 # Pyre type checker
 .pyre/
 
@@ -145,3 +148,8 @@ cython_debug/
 
 # Direnv
 .direnv
+
+# Graphs
+*.gexf
+*.txt
+!requirements.txt

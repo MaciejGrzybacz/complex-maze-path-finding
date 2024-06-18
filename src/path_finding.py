@@ -7,10 +7,12 @@ the shortest path between to given nodes in a graph.
 
 import networkx as nx  # type: ignore
 from typing import List, Tuple
+import os
 
 from .aco_strategies import MoveSelectionStrategy, PheromoneUpdateStrategy
 from .aco_strategies import PheromoneBasedMoveSelection, BasicPheromoneUpdate
 from .state_saver import save_state
+
 
 class AntColonyOptimization:
     def __init__(
@@ -24,7 +26,7 @@ class AntColonyOptimization:
         alpha: float = 1,
         beta: float = 1,
         move_selection_strategy: MoveSelectionStrategy = None,
-        pheromone_update_strategy: PheromoneUpdateStrategy = None
+        pheromone_update_strategy: PheromoneUpdateStrategy = None,
     ):
         """
         Initialize ACO algorithm with necessary parameters.
@@ -67,7 +69,11 @@ class AntColonyOptimization:
         if pheromone_update_strategy is None:
             self.pheromone_update_strategy = BasicPheromoneUpdate()
 
-    def run(self, start: int, end: int) -> Tuple[List[int], int]:
+    def run(
+        self,
+        start: int,
+        end: int,
+    ) -> Tuple[List[int], int]:
         """
         Run the ACO algorithm to find the shortest path from the start
         node to the end node.
@@ -83,10 +89,13 @@ class AntColonyOptimization:
         # shortest path found in each iteration
         shortest_path = None
         # shortest path found across all iterations
-        all_time_shortest_path = ("placeholder", float("inf"))
+        all_time_shortest_path = ((0, 0), int(1e100))
+
+        if not os.path.isdir("data"):
+            os.mkdir("data")
 
         # remove existing file contents
-        open(self.filename, 'w').close()
+        open(self.filename, "w").close()
 
         for iteration in range(self.n_iterations):
             # construct a path for all ants from start to end
@@ -102,14 +111,20 @@ class AntColonyOptimization:
             if shortest_path[1] < all_time_shortest_path[1]:
                 all_time_shortest_path = shortest_path
 
-            save_state(iteration=iteration, pheromone=self.pheromone,
-                       all_paths=all_paths, shortest_path=all_time_shortest_path,
-                       filepath=self.filename)
-            
+            save_state(
+                iteration=iteration,
+                pheromone=self.pheromone,
+                all_paths=all_paths,
+                shortest_path=all_time_shortest_path,
+                filepath=self.filename,
+            )
+
         return all_time_shortest_path
 
     def _construct_colony_paths(
-        self, start: int, end: int
+        self,
+        start: int,
+        end: int,
     ) -> List[Tuple[List[int], int]]:
         """
         Constructs paths for all ants in the colony from the
@@ -129,7 +144,11 @@ class AntColonyOptimization:
 
         return all_paths
 
-    def _construct_path(self, start: int, end: int) -> List[int]:
+    def _construct_path(
+        self,
+        start: int,
+        end: int,
+    ) -> List[int]:
         """
         Constructs a single path for an ant from the start node
         to the end node.

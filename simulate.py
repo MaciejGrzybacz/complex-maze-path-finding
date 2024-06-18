@@ -7,16 +7,24 @@ from src.path_finding import AntColonyOptimization
 from src.evaluation import compare_with_dijkstra
 from src.graph_generation import generate_maze
 from src.graph_utils import convert_grid_to_graph, node_tuple_to_int
-from src.display_maze import Drawer
 from networkx import to_edgelist  # type: ignore
 from sys import argv
 
 
 if __name__ == "__main__":
+    CELL_SIZE = 40
     ROWS = 10
     COLS = 10
-    CELL_SIZE = 40
     ITERATIONS = 3
+
+    if len(argv) > 1:
+        ROWS = int(argv[1])
+        COLS = int(argv[1])
+    elif len(argv) > 2:
+        ITERATIONS = int(argv[2])
+
+    with open("data/settings.txt", "w") as s:
+        s.write(str((ROWS, COLS, ITERATIONS)))
 
     maze = generate_maze(ROWS, COLS)
     with open("data/maze.txt", "w") as m:
@@ -36,23 +44,6 @@ if __name__ == "__main__":
 
     upper_right_corner = node_tuple_to_int((0, COLS - 1), COLS)
     lower_left_corner = node_tuple_to_int((ROWS - 1, 0), COLS)
-
     aco_path, dijkstra_path = compare_with_dijkstra(
         graph, lower_left_corner, upper_right_corner, aco
-    )
-
-    if len(argv) > 1:
-        drawer = Drawer(
-            ROWS,
-            COLS,
-            CELL_SIZE,
-            float(argv[1]),
-        )
-    else:
-        drawer = Drawer(ROWS, COLS, CELL_SIZE)
-
-    drawer.setup(maze)
-    drawer.draw(
-        ITERATIONS,
-        file_path="data/aco_state.jsonl",
     )
